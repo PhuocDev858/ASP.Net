@@ -6,35 +6,35 @@ namespace TranHuuPhuoc_2123110236.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CategoryController : ControllerBase
+    public class OrderController : ControllerBase
     {
-        // GET: api/<CategoryController>
+        // GET: api/<OrderController>
         [HttpGet]
         public IEnumerable<string> Get()
         {
-            return new string[] { "Linh kiện PC", "Điện thoại", "Máy tính", "Laptop", "Tai nghe" };
+            return new string[] { "Order1", "Order2", "Order3", "Order4" };
         }
 
-        // GET api/<CategoryController>/5
+        // GET api/<OrderController>/5
         [HttpGet("{id}")]
         public string Get(int id)
         {
             return "value";
         }
 
-        // POST api/<CategoryController>
+        // POST api/<OrderController>
         [HttpPost]
         public void Post([FromBody]string value)
         {
         }
 
-        // PUT api/<CategoryController>/5
+        // PUT api/<OrderController>/5
         [HttpPut("{id}")]
         public void Put(int id, [FromBody]string value)
         {
         }
 
-        // DELETE api/<CategoryController>/5
+        // DELETE api/<OrderController>/5
         [HttpDelete("{id}")]
         public void Delete(int id)
         {

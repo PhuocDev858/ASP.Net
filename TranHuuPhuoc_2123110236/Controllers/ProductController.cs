@@ -12,7 +12,7 @@ namespace TranHuuPhuoc_2123110236.Controllers
         [HttpGet]
         public IEnumerable<string> Get()
         {
-            return new string[] { "value1", "value2" };
+            return new string[] { "CPU", "RAM", "Card đồ họa", "Bo mạch chủ", "Nguồn", "Tản nhiệt", "Case máy tính"};
         }
 
         // GET api/<ProductController>/5
