@@ -10,9 +10,9 @@ namespace TranHuuPhuoc_2123110236.Controllers
     [Route("api/[controller]")]
     public class ProductController : ControllerBase
     {
-        private readonly ProductServiceImp _productService;
+        private readonly IProductService _productService;
 
-        public ProductController(ProductServiceImp productService)
+        public ProductController(IProductService productService)
         {
             _productService = productService;
         }

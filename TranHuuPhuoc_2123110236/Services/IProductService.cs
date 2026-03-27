@@ -2,7 +2,7 @@
 
 namespace TranHuuPhuoc_2123110236.Services
 {
-    public interface ProductServiceImp
+    public interface IProductService
     {
         Task<List<Product>> GetAllProducts();
         Task<Product> GetProductById(int id);

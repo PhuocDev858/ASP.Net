@@ -4,7 +4,7 @@ using TranHuuPhuoc_2123110236.Models;
 
 namespace TranHuuPhuoc_2123110236.Services
 {
-    public class ProductService : ProductServiceImp
+    public class ProductService : IProductService
     {
         private readonly AppDbContext _context;
 
@@ -14,7 +14,7 @@ namespace TranHuuPhuoc_2123110236.Services
         }
 
         // Lấy tất cả sản phẩm
-        public async Task<List<Product>> GetAllProduct()
+        public async Task<List<Product>> GetAllProducts()
         {
             try
             {
@@ -27,7 +27,7 @@ namespace TranHuuPhuoc_2123110236.Services
         }
 
         // Lấy sản phẩm theo ID
-        public async Task<Product> GetProductById(int id)
+        public async Task<Product> GetProductById(string id)
         {
             try
             {
@@ -79,7 +79,7 @@ namespace TranHuuPhuoc_2123110236.Services
         }
 
         // Cập nhật sản phẩm
-        public async Task<Product> UpdateProduct(int id, Product product)
+        public async Task<Product> UpdateProduct(string id, Product product)
         {
             try
             {
@@ -106,7 +106,7 @@ namespace TranHuuPhuoc_2123110236.Services
                 }
 
                 existingProduct.ProductName = product.ProductName;
-                existingProduct.Category = product.Category;
+                existingProduct.CategoryId = product.CategoryId;
                 existingProduct.Price = product.Price;
                 existingProduct.Stock = product.Stock;
                 existingProduct.Description = product.Description;
@@ -124,7 +124,7 @@ namespace TranHuuPhuoc_2123110236.Services
         }
 
         // Xóa sản phẩm
-        public async Task<bool> DeleteProduct(int id)
+        public async Task<bool> DeleteProduct(string id)
         {
             try
             {
@@ -167,7 +167,7 @@ namespace TranHuuPhuoc_2123110236.Services
         }
 
         // Lấy sản phẩm theo danh mục
-        public async Task<List<Product>> GetProductByCategory(string category)
+        public async Task<List<Product>> GetProductsByCategory(string category)
         {
             try
             {
@@ -177,7 +177,7 @@ namespace TranHuuPhuoc_2123110236.Services
                 }
 
                 return await _context.Product
-                    .Where(p => p.Category == category)
+                    .Where(p => p.CategoryId == category)
                     .ToListAsync();
             }
             catch (Exception ex)
@@ -187,7 +187,7 @@ namespace TranHuuPhuoc_2123110236.Services
         }
 
         // Lấy sản phẩm theo khoảng giá
-        public async Task<List<Product>> GetProductByPriceRange(decimal minPrice, decimal maxPrice)
+        public async Task<List<Product>> GetProductsByPriceRange(decimal minPrice, decimal maxPrice)
         {
             try
             {
@@ -235,7 +235,7 @@ namespace TranHuuPhuoc_2123110236.Services
                 }
 
                 var products = await _context.Product
-                    .Where(p => p.Category == category)
+                    .Where(p => p.CategoryId == category)
                     .ToListAsync();
 
                 if (products.Count == 0)
@@ -251,17 +251,17 @@ namespace TranHuuPhuoc_2123110236.Services
             }
         }
 
-        public Task<List<Product>> GetAllProducts()
+        public Task<Product> GetProductById(int id)
         {
             throw new NotImplementedException();
         }
 
-        public Task<List<Product>> GetProductsByCategory(string category)
+        public Task<Product> UpdateProduct(int id, Product product)
         {
             throw new NotImplementedException();
         }
 
-        public Task<List<Product>> GetProductsByPriceRange(decimal minPrice, decimal maxPrice)
+        public Task<bool> DeleteProduct(int id)
         {
             throw new NotImplementedException();
         }
