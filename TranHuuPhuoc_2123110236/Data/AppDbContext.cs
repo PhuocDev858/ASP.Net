@@ -8,6 +8,6 @@ namespace TranHuuPhuoc_2123110236.Data
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }
-        public DbSet<Products> Products { get; set; }
+        public DbSet<Product> Product { get; set; }
     }
 }
