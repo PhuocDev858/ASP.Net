@@ -40,9 +40,9 @@ namespace TranHuuPhuoc_2123110236.Data
 
                 // Foreign key constraint
                 entity.HasOne(p => p.Category)
-                    .WithMany()
-                    .HasForeignKey(p => p.CategoryId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                        .WithMany(c => c.Products)  // ← thêm c => c.Products
+                        .HasForeignKey(p => p.CategoryId)
+                        .OnDelete(DeleteBehavior.Cascade);
             });
         }
     }

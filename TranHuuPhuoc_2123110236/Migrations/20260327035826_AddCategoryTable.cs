@@ -15,6 +15,10 @@ namespace TranHuuPhuoc_2123110236.Migrations
                 name: "Category",
                 table: "Product");
 
+            migrationBuilder.DropPrimaryKey(
+                name: "PK_Product",
+                table: "Product");
+
             migrationBuilder.AlterColumn<string>(
                 name: "ProductName",
                 table: "Product",
@@ -41,6 +45,11 @@ namespace TranHuuPhuoc_2123110236.Migrations
                 nullable: false,
                 oldClrType: typeof(string),
                 oldType: "nvarchar(450)");
+
+            migrationBuilder.AddPrimaryKey(
+                name: "PK_Product",
+                table: "Product",
+                column: "ProductId");
 
             migrationBuilder.AddColumn<string>(
                 name: "CategoryId",
@@ -97,6 +106,10 @@ namespace TranHuuPhuoc_2123110236.Migrations
                 name: "CategoryId",
                 table: "Product");
 
+            migrationBuilder.DropPrimaryKey(
+                name: "PK_Product",
+                table: "Product");
+
             migrationBuilder.AlterColumn<string>(
                 name: "ProductName",
                 table: "Product",
@@ -123,6 +136,11 @@ namespace TranHuuPhuoc_2123110236.Migrations
                 oldClrType: typeof(string),
                 oldType: "nvarchar(50)",
                 oldMaxLength: 50);
+
+            migrationBuilder.AddPrimaryKey(
+                name: "PK_Product",
+                table: "Product",
+                column: "ProductId");
 
             migrationBuilder.AddColumn<string>(
                 name: "Category",
