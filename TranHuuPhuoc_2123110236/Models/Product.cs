@@ -11,6 +11,6 @@
         public DateTime CreatedAt { get; set; } = DateTime.Now;  // ← thêm
         public DateTime UpdatedAt { get; set; } = DateTime.Now;  // ← thêm
 
-        public Category Category { get; set; } = null!;
+        public Category? Category { get; set; } = null!;
     }
 }

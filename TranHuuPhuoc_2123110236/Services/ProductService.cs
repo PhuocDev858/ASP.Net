@@ -250,20 +250,5 @@ namespace TranHuuPhuoc_2123110236.Services
                 throw new Exception("Lỗi khi lấy giá trung bình: " + ex.Message);
             }
         }
-
-        public Task<Product> GetProductById(int id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<Product> UpdateProduct(int id, Product product)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> DeleteProduct(int id)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

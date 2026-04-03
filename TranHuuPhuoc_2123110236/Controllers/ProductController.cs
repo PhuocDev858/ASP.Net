@@ -2,8 +2,6 @@
 using TranHuuPhuoc_2123110236.Models;
 using TranHuuPhuoc_2123110236.Services;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-
 namespace TranHuuPhuoc_2123110236.Controllers
 {
     [ApiController]
@@ -34,7 +32,7 @@ namespace TranHuuPhuoc_2123110236.Controllers
 
         // GET: api/products/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Product>> GetProductById(int id)
+        public async Task<ActionResult<Product>> GetProductById(string id)  // ← int → string
         {
             try
             {
@@ -64,7 +62,7 @@ namespace TranHuuPhuoc_2123110236.Controllers
 
         // PUT: api/products/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateProduct(int id, Product product)
+        public async Task<IActionResult> UpdateProduct(string id, Product product)  // ← int → string
         {
             try
             {
@@ -79,7 +77,7 @@ namespace TranHuuPhuoc_2123110236.Controllers
 
         // DELETE: api/products/{id}
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteProduct(int id)
+        public async Task<IActionResult> DeleteProduct(string id)  // ← int → string
         {
             try
             {
