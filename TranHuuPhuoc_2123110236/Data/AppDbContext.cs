@@ -12,7 +12,6 @@ namespace TranHuuPhuoc_2123110236.Data
 
         public DbSet<Product> Product { get; set; }
         public DbSet<Category> Category { get; set; }
-        public DbSet<User> User { get; set; }  // ← Thêm dòng này
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -44,23 +43,6 @@ namespace TranHuuPhuoc_2123110236.Data
                         .WithMany(c => c.Products)  // ← thêm c => c.Products
                         .HasForeignKey(p => p.CategoryId)
                         .OnDelete(DeleteBehavior.Cascade);
-            });
-
-            // Cấu hình User
-            modelBuilder.Entity<User>(entity =>
-            {
-                entity.HasKey(e => e.UserId);
-                entity.Property(e => e.UserId).HasMaxLength(50).IsRequired();
-                entity.Property(e => e.FullName).IsRequired().HasMaxLength(255);
-                entity.Property(e => e.Email).IsRequired().HasMaxLength(255);
-                entity.Property(e => e.PhoneNumber).HasMaxLength(20);
-                entity.Property(e => e.Address).HasMaxLength(500);
-                entity.Property(e => e.Password).IsRequired();
-                entity.Property(e => e.Role).HasMaxLength(50);
-                entity.ToTable("User");
-
-                // Unique constraint cho Email
-                entity.HasIndex(e => e.Email).IsUnique();
             });
         }
     }
