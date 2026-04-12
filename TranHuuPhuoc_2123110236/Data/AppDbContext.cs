@@ -16,6 +16,8 @@ namespace TranHuuPhuoc_2123110236.Data
         public DbSet<Customer> Customer { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
+        public DbSet<Cart> Cart { get; set; }
+        //public DbSet<Payment> Payment { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

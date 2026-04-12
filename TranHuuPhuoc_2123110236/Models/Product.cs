@@ -6,11 +6,14 @@
         public string ProductName { get; set; }
         public string CategoryId { get; set; }
         public decimal Price { get; set; }
-        public int Stock { get; set; }
         public string Description { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.Now;  // ← thêm
-        public DateTime UpdatedAt { get; set; } = DateTime.Now;  // ← thêm
+        public int Stock { get; set; }
+        public string ImageUrl { get; set; }  // ← Thêm dòng này
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime UpdatedAt { get; set; } = DateTime.Now;
+        public bool IsActive { get; set; } = true;
 
-        public Category? Category { get; set; } = null!;
+        // Navigation
+        public Category Category { get; set; }
     }
 }
