@@ -27,14 +27,19 @@ namespace TranHuuPhuoc_2123110236.Services
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(request.CustomerId))
-                    throw new Exception("ID khách hàng không được để trống");
-
+                // ❌ Xóa validation CustomerId
+                // Kiểm tra các field khác
                 if (string.IsNullOrWhiteSpace(request.FullName))
                     throw new Exception("Tên đầy đủ không được để trống");
 
                 if (string.IsNullOrWhiteSpace(request.Email))
                     throw new Exception("Email không được để trống");
+
+                if (string.IsNullOrWhiteSpace(request.PhoneNumber))
+                    throw new Exception("Số điện thoại không được để trống");
+
+                if (string.IsNullOrWhiteSpace(request.Address))
+                    throw new Exception("Địa chỉ không được để trống");
 
                 if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 6)
                     throw new Exception("Mật khẩu phải có ít nhất 6 ký tự");
@@ -42,17 +47,18 @@ namespace TranHuuPhuoc_2123110236.Services
                 if (request.Password != request.ConfirmPassword)
                     throw new Exception("Mật khẩu xác nhận không khớp");
 
-                var existingId = await _context.Customer.FirstOrDefaultAsync(c => c.CustomerId == request.CustomerId);
-                if (existingId != null)
-                    throw new Exception("ID khách hàng đã tồn tại");
+                // ❌ Xóa check duplicate CustomerId
 
                 var existingEmail = await _context.Customer.FirstOrDefaultAsync(c => c.Email == request.Email);
                 if (existingEmail != null)
                     throw new Exception("Email đã được đăng kí");
 
+                // ✅ Tự sinh CustomerId
+                var customerId = GenerateCustomerId();
+
                 var customer = new Customer
                 {
-                    CustomerId = request.CustomerId,
+                    CustomerId = customerId,  // ← Tự sinh
                     FullName = request.FullName,
                     Email = request.Email,
                     PhoneNumber = request.PhoneNumber,
@@ -68,7 +74,7 @@ namespace TranHuuPhuoc_2123110236.Services
                 _context.Customer.Add(customer);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation($"Khách hàng {request.CustomerId} đã đăng kí");
+                _logger.LogInformation($"Khách hàng {customerId} đã đăng kí thành công");
 
                 return new CustomerDto
                 {
@@ -253,6 +259,12 @@ namespace TranHuuPhuoc_2123110236.Services
                 _logger.LogError($"Lỗi cập nhật hồ sơ: {ex.Message}");
                 throw new Exception("Lỗi khi cập nhật hồ sơ: " + ex.Message);
             }
+        }
+
+        // ✅ Helper method - Tự sinh CustomerId
+        private string GenerateCustomerId()
+        {
+            return "CUST" + DateTime.Now.ToString("yyyyMMddHHmmss") + Guid.NewGuid().ToString().Substring(0, 4).ToUpper();
         }
     }
 }
