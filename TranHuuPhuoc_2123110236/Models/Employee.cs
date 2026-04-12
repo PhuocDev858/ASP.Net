@@ -8,8 +8,9 @@
         public string PhoneNumber { get; set; }
         public string Address { get; set; }
         public string PasswordHash { get; set; }
+        public string Department { get; set; }
         public string Role { get; set; } = "Staff";  // Admin, Staff
-        public decimal Salary { get; set; }  // Lương (Optional)
+        public decimal Salary { get; set; }  // Lương
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
         public bool IsActive { get; set; } = true;

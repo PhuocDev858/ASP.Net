@@ -6,7 +6,6 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Microsoft.CodeAnalysis.Scripting;
 
 namespace TranHuuPhuoc_2123110236.Services
 {
@@ -28,8 +27,7 @@ namespace TranHuuPhuoc_2123110236.Services
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(request.EmployeeId))
-                    throw new Exception("ID nhân viên không được để trống");
+                // ❌ Xóa validation EmployeeId
 
                 if (string.IsNullOrWhiteSpace(request.FullName))
                     throw new Exception("Tên đầy đủ không được để trống");
@@ -37,27 +35,36 @@ namespace TranHuuPhuoc_2123110236.Services
                 if (string.IsNullOrWhiteSpace(request.Email))
                     throw new Exception("Email không được để trống");
 
+                if (string.IsNullOrWhiteSpace(request.PhoneNumber))
+                    throw new Exception("Số điện thoại không được để trống");
+
+                if (string.IsNullOrWhiteSpace(request.Address))
+                    throw new Exception("Địa chỉ không được để trống");
+
                 if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 6)
                     throw new Exception("Mật khẩu phải có ít nhất 6 ký tự");
 
                 if (request.Password != request.ConfirmPassword)
                     throw new Exception("Mật khẩu xác nhận không khớp");
 
-                var existingId = await _context.Employee.FirstOrDefaultAsync(e => e.EmployeeId == request.EmployeeId);
-                if (existingId != null)
-                    throw new Exception("ID nhân viên đã tồn tại");
+                // ❌ Xóa check duplicate EmployeeId
 
                 var existingEmail = await _context.Employee.FirstOrDefaultAsync(e => e.Email == request.Email);
                 if (existingEmail != null)
                     throw new Exception("Email đã được đăng kí");
 
+                // ✅ Tự sinh EmployeeId
+                var employeeId = GenerateEmployeeId();
+
                 var employee = new Employee
                 {
-                    EmployeeId = request.EmployeeId,
+                    EmployeeId = employeeId,  // ← Tự sinh
                     FullName = request.FullName,
                     Email = request.Email,
                     PhoneNumber = request.PhoneNumber,
                     Address = request.Address,
+                    Department = request.Department,  // ✅ Thêm
+                    Salary = request.Salary,          // ✅ Thêm
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
                     Role = "Staff",  // Mặc định là Staff
                     CreatedAt = DateTime.Now,
@@ -68,16 +75,9 @@ namespace TranHuuPhuoc_2123110236.Services
                 _context.Employee.Add(employee);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation($"Nhân viên {request.EmployeeId} đã được tạo");
+                _logger.LogInformation($"Nhân viên {employeeId} đã được tạo thành công");
 
-                return new EmployeeDto
-                {
-                    EmployeeId = employee.EmployeeId,
-                    FullName = employee.FullName,
-                    Email = employee.Email,
-                    Role = employee.Role,
-                    IsActive = employee.IsActive
-                };
+                return MapToEmployeeDto(employee);
             }
             catch (Exception ex)
             {
@@ -103,7 +103,7 @@ namespace TranHuuPhuoc_2123110236.Services
                     throw new Exception("Tài khoản của bạn đã bị vô hiệu hóa");
 
                 if (!BCrypt.Net.BCrypt.Verify(request.Password, employee.PasswordHash))
-                    throw new Exception("Email hoặc mật khẩu không chính xác");
+                    throw new Exception("Email ho���c mật khẩu không chính xác");
 
                 var token = GenerateJwtToken(employee);
 
@@ -112,14 +112,7 @@ namespace TranHuuPhuoc_2123110236.Services
                 return new EmployeeLoginResponse
                 {
                     Token = token,
-                    Employee = new EmployeeDto
-                    {
-                        EmployeeId = employee.EmployeeId,
-                        FullName = employee.FullName,
-                        Email = employee.Email,
-                        Role = employee.Role,
-                        IsActive = employee.IsActive
-                    },
+                    Employee = MapToEmployeeDto(employee),
                     Message = "Đăng nhập thành công"
                 };
             }
@@ -204,18 +197,41 @@ namespace TranHuuPhuoc_2123110236.Services
                 if (employee == null)
                     throw new Exception("Nhân viên không tồn tại");
 
-                return new EmployeeDto
-                {
-                    EmployeeId = employee.EmployeeId,
-                    FullName = employee.FullName,
-                    Email = employee.Email,
-                    Role = employee.Role,
-                    IsActive = employee.IsActive
-                };
+                return MapToEmployeeDto(employee);
             }
             catch (Exception ex)
             {
                 throw new Exception("Lỗi khi lấy profil: " + ex.Message);
+            }
+        }
+
+        // Cập nhật profil - ✅ Thêm method mới
+        public async Task<bool> UpdateProfile(string employeeId, EmployeeUpdateProfileRequest request)
+        {
+            try
+            {
+                var employee = await _context.Employee.FindAsync(employeeId);
+                if (employee == null)
+                    throw new Exception("Nhân viên không tồn tại");
+
+                employee.FullName = request.FullName;
+                employee.PhoneNumber = request.PhoneNumber;
+                employee.Address = request.Address;
+                employee.Department = request.Department;
+                employee.Salary = request.Salary;
+                employee.UpdatedAt = DateTime.Now;
+
+                _context.Employee.Update(employee);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation($"Nhân viên {employeeId} đã cập nhật hồ sơ");
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi cập nhật hồ sơ: {ex.Message}");
+                throw new Exception("Lỗi khi cập nhật hồ sơ: " + ex.Message);
             }
         }
 
@@ -254,19 +270,35 @@ namespace TranHuuPhuoc_2123110236.Services
             try
             {
                 var employees = await _context.Employee.ToListAsync();
-                return employees.Select(e => new EmployeeDto
-                {
-                    EmployeeId = e.EmployeeId,
-                    FullName = e.FullName,
-                    Email = e.Email,
-                    Role = e.Role,
-                    IsActive = e.IsActive
-                }).ToList();
+                return employees.Select(MapToEmployeeDto).ToList();
             }
             catch (Exception ex)
             {
                 throw new Exception("Lỗi khi lấy danh sách nhân viên: " + ex.Message);
             }
+        }
+
+        // ✅ Helper methods
+        private string GenerateEmployeeId()
+        {
+            return "EMP" + DateTime.Now.ToString("yyyyMMddHHmmss") + Guid.NewGuid().ToString().Substring(0, 4).ToUpper();
+        }
+
+        private EmployeeDto MapToEmployeeDto(Employee employee)
+        {
+            return new EmployeeDto
+            {
+                EmployeeId = employee.EmployeeId,
+                FullName = employee.FullName,
+                Email = employee.Email,
+                PhoneNumber = employee.PhoneNumber,
+                Address = employee.Address,
+                Department = employee.Department,  // ✅ Thêm
+                Salary = employee.Salary,          // ✅ Thêm
+                Role = employee.Role,
+                IsActive = employee.IsActive,
+                CreatedAt = employee.CreatedAt
+            };
         }
     }
 }
