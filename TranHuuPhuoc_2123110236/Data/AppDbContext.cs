@@ -14,6 +14,8 @@ namespace TranHuuPhuoc_2123110236.Data
         public DbSet<Category> Category { get; set; }
         public DbSet<Employee> Employee { get; set; }
         public DbSet<Customer> Customer { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderDetail> OrderDetails { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -64,7 +66,7 @@ namespace TranHuuPhuoc_2123110236.Data
                 });
 
                 // Cấu hình Customer
-                modelBuilder.Entity<Customer>(entity =>
+            modelBuilder.Entity<Customer>(entity =>
                 {
                     entity.HasKey(e => e.CustomerId);
                     entity.Property(e => e.CustomerId).HasMaxLength(50).IsRequired();
@@ -78,6 +80,51 @@ namespace TranHuuPhuoc_2123110236.Data
 
                     entity.HasIndex(e => e.Email).IsUnique();
                 });
-            }
+
+            // Cấu hình Order
+            modelBuilder.Entity<Order>(entity =>
+            {
+                entity.HasKey(e => e.OrderId);
+                entity.Property(e => e.OrderId).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.CustomerId).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.EmployeeId).HasMaxLength(50);
+                entity.Property(e => e.Status).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.ShippingAddress).HasMaxLength(500);
+                entity.Property(e => e.TotalAmount).HasPrecision(18, 2);
+                entity.ToTable("Order");
+
+                entity.HasOne(o => o.Customer)
+                    .WithMany(c => c.Orders)
+                    .HasForeignKey(o => o.CustomerId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(o => o.Employee)
+                    .WithMany()
+                    .HasForeignKey(o => o.EmployeeId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Cấu hình OrderDetail
+            modelBuilder.Entity<OrderDetail>(entity =>
+            {
+                entity.HasKey(e => e.OrderDetailId);
+                entity.Property(e => e.OrderDetailId).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.OrderId).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.ProductId).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.UnitPrice).HasPrecision(18, 2);
+                entity.Property(e => e.TotalPrice).HasPrecision(18, 2);
+                entity.ToTable("OrderDetail");
+
+                entity.HasOne(od => od.Order)
+                    .WithMany(o => o.OrderDetails)
+                    .HasForeignKey(od => od.OrderId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(od => od.Product)
+                    .WithMany()
+                    .HasForeignKey(od => od.ProductId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+        }
     }
 }

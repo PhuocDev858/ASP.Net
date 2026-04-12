@@ -158,6 +158,7 @@ namespace TranHuuPhuoc_2123110236.Services
                     new Claim(ClaimTypes.NameIdentifier, customer.CustomerId),
                     new Claim(ClaimTypes.Email, customer.Email),
                     new Claim(ClaimTypes.Name, customer.FullName),
+                    new Claim(ClaimTypes.Role, "Customer"),
                     new Claim("UserType", "Customer"),
                     new Claim("IsActive", customer.IsActive.ToString())
                 }),

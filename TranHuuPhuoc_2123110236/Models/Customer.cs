@@ -13,5 +13,6 @@
         public bool IsActive { get; set; } = true;
         public decimal TotalSpent { get; set; } = 0;  // Tổng tiền đã chi
         public int TotalOrders { get; set; } = 0;  // Tổng số đơn hàng
+        public ICollection<Order> Orders { get; set; } = new List<Order>();
     }
 }

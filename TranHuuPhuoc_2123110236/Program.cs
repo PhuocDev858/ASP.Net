@@ -4,6 +4,7 @@ using TranHuuPhuoc_2123110236.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using TranHuuPhuoc_2123110236.Services.OrderServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,7 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IEmployeeAuthService, EmployeeAuthService>();  // ← Thêm
 builder.Services.AddScoped<ICustomerAuthService, CustomerAuthService>();  // ← Thêm
+builder.Services.AddScoped<IOrderService, OrderService>();
 
 // JWT Authentication
 var jwtSecret = builder.Configuration["JwtSettings:Secret"];

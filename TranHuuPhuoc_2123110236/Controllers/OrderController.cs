@@ -1,43 +1,167 @@
-﻿using Microsoft.AspNetCore.Mvc;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using TranHuuPhuoc_2123110236.DTOs;
+using TranHuuPhuoc_2123110236.Services.OrderServices;
+using System.Security.Claims;
 
 namespace TranHuuPhuoc_2123110236.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class OrderController : ControllerBase
     {
-        // GET: api/<OrderController>
-        [HttpGet]
-        public IEnumerable<string> Get()
+        private readonly IOrderService _orderService;
+        private readonly ILogger<OrderController> _logger;
+
+        public OrderController(IOrderService orderService, ILogger<OrderController> logger)
         {
-            return new string[] { "Order1", "Order2", "Order3", "Order4" };
+            _orderService = orderService;
+            _logger = logger;
         }
 
-        // GET api/<OrderController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
-        {
-            return "value";
-        }
-
-        // POST api/<OrderController>
+        // POST: api/order
+        [Authorize(Roles = "Customer,Staff,Admin")]
         [HttpPost]
-        public void Post([FromBody]string value)
+        public async Task<ActionResult<OrderResponse>> CreateOrder([FromBody] CreateOrderRequest request)
         {
+            try
+            {
+                var order = await _orderService.CreateOrder(request);
+                return CreatedAtAction(nameof(GetOrderById), new { orderId = order.OrderId }, order);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Create order error: {ex.Message}");
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
-        // PUT api/<OrderController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody]string value)
+        // GET: api/order/{orderId}
+        [Authorize(Roles = "Customer,Staff,Admin")]
+        [HttpGet("{orderId}")]
+        public async Task<ActionResult<OrderResponse>> GetOrderById(string orderId)
         {
+            try
+            {
+                var order = await _orderService.GetOrderById(orderId);
+                return Ok(order);
+            }
+            catch (Exception ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
         }
 
-        // DELETE api/<OrderController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        // GET: api/order/customer/{customerId}
+        [Authorize(Roles = "Customer,Staff,Admin")]
+        [HttpGet("customer/{customerId}")]
+        public async Task<ActionResult<List<OrderResponse>>> GetOrdersByCustomer(string customerId)
         {
+            try
+            {
+                var orders = await _orderService.GetOrdersByCustomer(customerId);
+                return Ok(orders);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // GET: api/order
+        [Authorize(Roles = "Staff,Admin")]
+        [HttpGet]
+        public async Task<ActionResult<List<OrderResponse>>> GetAllOrders()
+        {
+            try
+            {
+                var orders = await _orderService.GetAllOrders();
+                return Ok(orders);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // PUT: api/order/{orderId}/status
+        [Authorize(Roles = "Staff,Admin")]
+        [HttpPut("{orderId}/status")]
+        public async Task<IActionResult> UpdateOrderStatus(string orderId, [FromBody] UpdateOrderStatusRequest request)
+        {
+            try
+            {
+                await _orderService.UpdateOrderStatus(orderId, request.NewStatus);
+                return Ok(new { message = $"Cập nhật trạng thái đơn hàng {orderId} thành {request.NewStatus} thành công" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // DELETE: api/order/{orderId}
+        [Authorize(Roles = "Customer,Staff,Admin")]
+        [HttpDelete("{orderId}")]
+        public async Task<IActionResult> CancelOrder(string orderId)
+        {
+            try
+            {
+                await _orderService.CancelOrder(orderId);
+                return Ok(new { message = "Hủy đơn hàng thành công" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // GET: api/order/status/{status}
+        [Authorize(Roles = "Staff,Admin")]
+        [HttpGet("status/{status}")]
+        public async Task<ActionResult<List<OrderResponse>>> GetOrdersByStatus(string status)
+        {
+            try
+            {
+                var orders = await _orderService.GetOrdersByStatus(status);
+                return Ok(orders);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // GET: api/order/count
+        [Authorize(Roles = "Admin")]
+        [HttpGet("analytics/count")]
+        public async Task<ActionResult<int>> GetOrderCount()
+        {
+            try
+            {
+                var count = await _orderService.GetOrderCount();
+                return Ok(new { totalOrders = count });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // GET: api/order/revenue
+        [Authorize(Roles = "Admin")]
+        [HttpGet("analytics/revenue")]
+        public async Task<ActionResult<decimal>> GetTotalRevenue()
+        {
+            try
+            {
+                var revenue = await _orderService.GetTotalRevenue();
+                return Ok(new { totalRevenue = revenue });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
     }
 }
