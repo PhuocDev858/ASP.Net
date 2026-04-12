@@ -15,8 +15,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Đăng ký Services
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
-builder.Services.AddScoped<IEmployeeAuthService, EmployeeAuthService>();  // ← Thêm
-builder.Services.AddScoped<ICustomerAuthService, CustomerAuthService>();  // ← Thêm
+builder.Services.AddScoped<IEmployeeAuthService, EmployeeAuthService>(); 
+builder.Services.AddScoped<ICustomerAuthService, CustomerAuthService>();  
 builder.Services.AddScoped<IOrderService, OrderService>();
 
 // JWT Authentication
