@@ -12,6 +12,8 @@ namespace TranHuuPhuoc_2123110236.Data
 
         public DbSet<Product> Product { get; set; }
         public DbSet<Category> Category { get; set; }
+        public DbSet<Employee> Employee { get; set; }
+        public DbSet<Customer> Customer { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -43,7 +45,39 @@ namespace TranHuuPhuoc_2123110236.Data
                         .WithMany(c => c.Products)  // ← thêm c => c.Products
                         .HasForeignKey(p => p.CategoryId)
                         .OnDelete(DeleteBehavior.Cascade);
-            });
-        }
+                });
+            // Cấu hình Employee
+            modelBuilder.Entity<Employee>(entity =>
+                {
+                    entity.HasKey(e => e.EmployeeId);
+                    entity.Property(e => e.EmployeeId).HasMaxLength(50).IsRequired();
+                    entity.Property(e => e.FullName).IsRequired().HasMaxLength(255);
+                    entity.Property(e => e.Email).IsRequired().HasMaxLength(255);
+                    entity.Property(e => e.PhoneNumber).HasMaxLength(20);
+                    entity.Property(e => e.Address).HasMaxLength(500);
+                    entity.Property(e => e.PasswordHash).IsRequired();
+                    entity.Property(e => e.Role).HasMaxLength(50).IsRequired();
+                    entity.Property(e => e.Salary).HasPrecision(18, 2);
+                    entity.ToTable("Employee");
+
+                    entity.HasIndex(e => e.Email).IsUnique();
+                });
+
+                // Cấu hình Customer
+                modelBuilder.Entity<Customer>(entity =>
+                {
+                    entity.HasKey(e => e.CustomerId);
+                    entity.Property(e => e.CustomerId).HasMaxLength(50).IsRequired();
+                    entity.Property(e => e.FullName).IsRequired().HasMaxLength(255);
+                    entity.Property(e => e.Email).IsRequired().HasMaxLength(255);
+                    entity.Property(e => e.PhoneNumber).HasMaxLength(20);
+                    entity.Property(e => e.Address).HasMaxLength(500);
+                    entity.Property(e => e.PasswordHash).IsRequired();
+                    entity.Property(e => e.TotalSpent).HasPrecision(18, 2);
+                    entity.ToTable("Customer");
+
+                    entity.HasIndex(e => e.Email).IsUnique();
+                });
+            }
     }
 }
