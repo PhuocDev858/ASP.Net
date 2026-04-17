@@ -1,21 +1,18 @@
+# Sử dụng .NET SDK 8.0 để build code
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-COPY TranHuuPhuoc_2123110236.sln ./
-COPY TranHuuPhuoc_2123110236/TranHuuPhuoc_2123110236.csproj TranHuuPhuoc_2123110236/
+# Copy toàn bộ source code vào container
+COPY . .
 
-RUN dotnet restore TranHuuPhuoc_2123110236.sln
+# Chạy lệnh Build và Publish
+RUN dotnet restore
+RUN dotnet publish -c Release -o /app/publish
 
-COPY TranHuuPhuoc_2123110236/ TranHuuPhuoc_2123110236/
-
-RUN dotnet publish TranHuuPhuoc_2123110236/TranHuuPhuoc_2123110236.csproj -c Release -o /app/publish
-
+# Sử dụng .NET Runtime 8.0 để chạy app (nhẹ hơn)
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
+COPY --from=build /app/publish .
 
-COPY --from=build /app/publish ./
-
-ENV ASPNETCORE_URLS=http://0.0.0.0:80
-EXPOSE 80
-
+# 🚨 CHÚ Ý: Đổi tên file .dll này cho ĐÚNG với tên Project của bạn
 ENTRYPOINT ["dotnet", "TranHuuPhuoc_2123110236.dll"]
