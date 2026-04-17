@@ -88,17 +88,10 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // Chỉ show Swagger ở Development
-if (app.Environment.IsDevelopment())
-{
+
     app.UseSwagger();
     app.UseSwaggerUI();
-}
 
-// Chỉ redirect HTTPS ở Production nếu cần (Render không cần)
-if (!app.Environment.IsProduction())
-{
-    app.UseHttpsRedirection();
-}
 
 // Sử dụng CORS
 app.UseCors("AllowAll");
