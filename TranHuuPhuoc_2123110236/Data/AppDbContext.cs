@@ -5,7 +5,6 @@ namespace TranHuuPhuoc_2123110236.Data
 {
     public class AppDbContext : DbContext
     {
-        // Constructor này bắt buộc phải có để nhận Connection String từ Program.cs
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }
@@ -16,7 +15,6 @@ namespace TranHuuPhuoc_2123110236.Data
         public DbSet<Customer> Customer { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
-        //public DbSet<Payment> Payment { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -26,20 +24,20 @@ namespace TranHuuPhuoc_2123110236.Data
             {
                 entity.HasKey(e => e.CategoryId);
                 entity.Property(e => e.CategoryId).HasMaxLength(50).IsRequired();
-                entity.Property(e => e.CategoryName).IsRequired().HasMaxLength(255);
-                entity.Property(e => e.Description).HasMaxLength(1000);
-                entity.ToTable("Categories"); // ✅ Đúng tên DB
+                entity.Property(e => e.CategoryName).IsRequired().HasMaxLength(255).HasColumnType("nvarchar(255)");
+                entity.Property(e => e.Description).HasMaxLength(1000).HasColumnType("nvarchar(1000)");
+                entity.ToTable("Categories");
             });
 
             modelBuilder.Entity<Product>(entity =>
             {
                 entity.HasKey(e => e.ProductId);
                 entity.Property(e => e.ProductId).HasMaxLength(50).IsRequired();
-                entity.Property(e => e.ProductName).IsRequired().HasMaxLength(255);
+                entity.Property(e => e.ProductName).IsRequired().HasMaxLength(255).HasColumnType("nvarchar(255)");
                 entity.Property(e => e.CategoryId).HasMaxLength(50).IsRequired();
                 entity.Property(e => e.Price).HasPrecision(18, 2);
-                entity.Property(e => e.Description).HasMaxLength(1000);
-                entity.ToTable("Products"); // ✅ Đúng tên DB
+                entity.Property(e => e.Description).HasMaxLength(1000).HasColumnType("nvarchar(1000)");
+                entity.ToTable("Products");
 
                 entity.HasOne(p => p.Category)
                     .WithMany(c => c.Products)
@@ -51,14 +49,14 @@ namespace TranHuuPhuoc_2123110236.Data
             {
                 entity.HasKey(e => e.EmployeeId);
                 entity.Property(e => e.EmployeeId).HasMaxLength(50).IsRequired();
-                entity.Property(e => e.FullName).IsRequired().HasMaxLength(255);
+                entity.Property(e => e.FullName).IsRequired().HasMaxLength(255).HasColumnType("nvarchar(255)");
                 entity.Property(e => e.Email).IsRequired().HasMaxLength(255);
                 entity.Property(e => e.PhoneNumber).HasMaxLength(20);
-                entity.Property(e => e.Address).HasMaxLength(500);
+                entity.Property(e => e.Address).HasMaxLength(500).HasColumnType("nvarchar(500)");
                 entity.Property(e => e.PasswordHash).IsRequired();
                 entity.Property(e => e.Role).HasMaxLength(50).IsRequired();
                 entity.Property(e => e.Salary).HasPrecision(18, 2);
-                entity.ToTable("Employees"); // ✅ Đúng tên DB
+                entity.ToTable("Employees");
 
                 entity.HasIndex(e => e.Email).IsUnique();
             });
@@ -67,13 +65,13 @@ namespace TranHuuPhuoc_2123110236.Data
             {
                 entity.HasKey(e => e.CustomerId);
                 entity.Property(e => e.CustomerId).HasMaxLength(50).IsRequired();
-                entity.Property(e => e.FullName).IsRequired().HasMaxLength(255);
+                entity.Property(e => e.FullName).IsRequired().HasMaxLength(255).HasColumnType("nvarchar(255)");
                 entity.Property(e => e.Email).IsRequired().HasMaxLength(255);
                 entity.Property(e => e.PhoneNumber).HasMaxLength(20);
-                entity.Property(e => e.Address).HasMaxLength(500);
+                entity.Property(e => e.Address).HasMaxLength(500).HasColumnType("nvarchar(500)");
                 entity.Property(e => e.PasswordHash).IsRequired();
                 entity.Property(e => e.TotalSpent).HasPrecision(18, 2);
-                entity.ToTable("Customers"); // ✅ Đúng tên DB
+                entity.ToTable("Customers");
 
                 entity.HasIndex(e => e.Email).IsUnique();
             });
@@ -85,9 +83,9 @@ namespace TranHuuPhuoc_2123110236.Data
                 entity.Property(e => e.CustomerId).HasMaxLength(50).IsRequired();
                 entity.Property(e => e.EmployeeId).HasMaxLength(50);
                 entity.Property(e => e.Status).HasMaxLength(50).IsRequired();
-                entity.Property(e => e.ShippingAddress).HasMaxLength(500);
+                entity.Property(e => e.ShippingAddress).HasMaxLength(500).HasColumnType("nvarchar(500)");
                 entity.Property(e => e.TotalAmount).HasPrecision(18, 2);
-                entity.ToTable("Orders"); // ✅ Đúng tên DB
+                entity.ToTable("Orders");
 
                 entity.HasOne(o => o.Customer)
                     .WithMany(c => c.Orders)
@@ -108,7 +106,7 @@ namespace TranHuuPhuoc_2123110236.Data
                 entity.Property(e => e.ProductId).HasMaxLength(50).IsRequired();
                 entity.Property(e => e.UnitPrice).HasPrecision(18, 2);
                 entity.Property(e => e.TotalPrice).HasPrecision(18, 2);
-                entity.ToTable("OrderDetails"); // ✅ Đúng tên DB
+                entity.ToTable("OrderDetails");
 
                 entity.HasOne(od => od.Order)
                     .WithMany(o => o.OrderDetails)
