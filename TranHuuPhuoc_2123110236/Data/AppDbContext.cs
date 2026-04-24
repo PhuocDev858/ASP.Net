@@ -20,6 +20,13 @@ namespace TranHuuPhuoc_2123110236.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Category>().ToTable("Categories");
+            modelBuilder.Entity<Product>().ToTable("Products");
+            modelBuilder.Entity<Customer>().ToTable("Customers");
+            modelBuilder.Entity<Employee>().ToTable("Employees");
+            modelBuilder.Entity<Order>().ToTable("Orders");
+            modelBuilder.Entity<OrderDetail>().ToTable("OrderDetails");
+            modelBuilder.Entity<Payment>().ToTable("Payments");
             base.OnModelCreating(modelBuilder);
 
             // Cấu hình Category

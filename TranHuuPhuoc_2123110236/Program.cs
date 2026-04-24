@@ -12,8 +12,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
 
 // Đăng ký SQL Server - tự đọc từ ConnectionStrings__DefaultConnection
+var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+    ?? "Server=LAPTOP-MP7VACPG\\HUUPHUOC;Database=PCShop_Net8;User Id=SA;Password=Phuocga147;Trusted_Connection=True;TrustServerCertificate=True;";
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(connectionString));
 
 // Đăng ký Services
 builder.Services.AddScoped<IProductService, ProductService>();
