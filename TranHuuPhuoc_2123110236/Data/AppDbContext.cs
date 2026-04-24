@@ -20,26 +20,17 @@ namespace TranHuuPhuoc_2123110236.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Category>().ToTable("Categories");
-            modelBuilder.Entity<Product>().ToTable("Products");
-            modelBuilder.Entity<Customer>().ToTable("Customers");
-            modelBuilder.Entity<Employee>().ToTable("Employees");
-            modelBuilder.Entity<Order>().ToTable("Orders");
-            modelBuilder.Entity<OrderDetail>().ToTable("OrderDetails");
-            modelBuilder.Entity<Payment>().ToTable("Payments");
             base.OnModelCreating(modelBuilder);
 
-            // Cấu hình Category
             modelBuilder.Entity<Category>(entity =>
             {
                 entity.HasKey(e => e.CategoryId);
                 entity.Property(e => e.CategoryId).HasMaxLength(50).IsRequired();
                 entity.Property(e => e.CategoryName).IsRequired().HasMaxLength(255);
                 entity.Property(e => e.Description).HasMaxLength(1000);
-                entity.ToTable("Category");
+                entity.ToTable("Categories"); // ✅ Đúng tên DB
             });
 
-            // Cấu hình Product
             modelBuilder.Entity<Product>(entity =>
             {
                 entity.HasKey(e => e.ProductId);
@@ -48,48 +39,45 @@ namespace TranHuuPhuoc_2123110236.Data
                 entity.Property(e => e.CategoryId).HasMaxLength(50).IsRequired();
                 entity.Property(e => e.Price).HasPrecision(18, 2);
                 entity.Property(e => e.Description).HasMaxLength(1000);
-                entity.ToTable("Product");
+                entity.ToTable("Products"); // ✅ Đúng tên DB
 
-                // Foreign key constraint
                 entity.HasOne(p => p.Category)
-                        .WithMany(c => c.Products)  // ← thêm c => c.Products
-                        .HasForeignKey(p => p.CategoryId)
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
-            // Cấu hình Employee
+                    .WithMany(c => c.Products)
+                    .HasForeignKey(p => p.CategoryId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
             modelBuilder.Entity<Employee>(entity =>
-                {
-                    entity.HasKey(e => e.EmployeeId);
-                    entity.Property(e => e.EmployeeId).HasMaxLength(50).IsRequired();
-                    entity.Property(e => e.FullName).IsRequired().HasMaxLength(255);
-                    entity.Property(e => e.Email).IsRequired().HasMaxLength(255);
-                    entity.Property(e => e.PhoneNumber).HasMaxLength(20);
-                    entity.Property(e => e.Address).HasMaxLength(500);
-                    entity.Property(e => e.PasswordHash).IsRequired();
-                    entity.Property(e => e.Role).HasMaxLength(50).IsRequired();
-                    entity.Property(e => e.Salary).HasPrecision(18, 2);
-                    entity.ToTable("Employee");
+            {
+                entity.HasKey(e => e.EmployeeId);
+                entity.Property(e => e.EmployeeId).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.FullName).IsRequired().HasMaxLength(255);
+                entity.Property(e => e.Email).IsRequired().HasMaxLength(255);
+                entity.Property(e => e.PhoneNumber).HasMaxLength(20);
+                entity.Property(e => e.Address).HasMaxLength(500);
+                entity.Property(e => e.PasswordHash).IsRequired();
+                entity.Property(e => e.Role).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.Salary).HasPrecision(18, 2);
+                entity.ToTable("Employees"); // ✅ Đúng tên DB
 
-                    entity.HasIndex(e => e.Email).IsUnique();
-                });
+                entity.HasIndex(e => e.Email).IsUnique();
+            });
 
-                // Cấu hình Customer
             modelBuilder.Entity<Customer>(entity =>
-                {
-                    entity.HasKey(e => e.CustomerId);
-                    entity.Property(e => e.CustomerId).HasMaxLength(50).IsRequired();
-                    entity.Property(e => e.FullName).IsRequired().HasMaxLength(255);
-                    entity.Property(e => e.Email).IsRequired().HasMaxLength(255);
-                    entity.Property(e => e.PhoneNumber).HasMaxLength(20);
-                    entity.Property(e => e.Address).HasMaxLength(500);
-                    entity.Property(e => e.PasswordHash).IsRequired();
-                    entity.Property(e => e.TotalSpent).HasPrecision(18, 2);
-                    entity.ToTable("Customer");
+            {
+                entity.HasKey(e => e.CustomerId);
+                entity.Property(e => e.CustomerId).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.FullName).IsRequired().HasMaxLength(255);
+                entity.Property(e => e.Email).IsRequired().HasMaxLength(255);
+                entity.Property(e => e.PhoneNumber).HasMaxLength(20);
+                entity.Property(e => e.Address).HasMaxLength(500);
+                entity.Property(e => e.PasswordHash).IsRequired();
+                entity.Property(e => e.TotalSpent).HasPrecision(18, 2);
+                entity.ToTable("Customers"); // ✅ Đúng tên DB
 
-                    entity.HasIndex(e => e.Email).IsUnique();
-                });
+                entity.HasIndex(e => e.Email).IsUnique();
+            });
 
-            // Cấu hình Order
             modelBuilder.Entity<Order>(entity =>
             {
                 entity.HasKey(e => e.OrderId);
@@ -99,7 +87,7 @@ namespace TranHuuPhuoc_2123110236.Data
                 entity.Property(e => e.Status).HasMaxLength(50).IsRequired();
                 entity.Property(e => e.ShippingAddress).HasMaxLength(500);
                 entity.Property(e => e.TotalAmount).HasPrecision(18, 2);
-                entity.ToTable("Order");
+                entity.ToTable("Orders"); // ✅ Đúng tên DB
 
                 entity.HasOne(o => o.Customer)
                     .WithMany(c => c.Orders)
@@ -112,7 +100,6 @@ namespace TranHuuPhuoc_2123110236.Data
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // Cấu hình OrderDetail
             modelBuilder.Entity<OrderDetail>(entity =>
             {
                 entity.HasKey(e => e.OrderDetailId);
@@ -121,7 +108,7 @@ namespace TranHuuPhuoc_2123110236.Data
                 entity.Property(e => e.ProductId).HasMaxLength(50).IsRequired();
                 entity.Property(e => e.UnitPrice).HasPrecision(18, 2);
                 entity.Property(e => e.TotalPrice).HasPrecision(18, 2);
-                entity.ToTable("OrderDetail");
+                entity.ToTable("OrderDetails"); // ✅ Đúng tên DB
 
                 entity.HasOne(od => od.Order)
                     .WithMany(o => o.OrderDetails)
