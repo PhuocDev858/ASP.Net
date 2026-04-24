@@ -8,25 +8,12 @@ using TranHuuPhuoc_2123110236.Services.OrderServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Thêm Environment Variables vào configuration
+// Thêm Environment Variables vào configuration (tự động map __ → :)
 builder.Configuration.AddEnvironmentVariables();
 
-// Lấy connection string từ environment hoặc appsettings
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
-// Nếu không có từ appsettings, lấy từ environment variable (cho Render)
-if (string.IsNullOrEmpty(connectionString))
-{
-    connectionString = Environment.GetEnvironmentVariable("ConnectionStrings:DefaultConnection")
-        ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
-}
-
-// Nếu vẫn không có, dùng default (cho development)
-connectionString = connectionString ?? "Server=LAPTOP-MP7VACPG\\HUUPHUOC;Database=PCShop_Net8;User Id=SA;Password=Phuocga147;Trusted_Connection=True;TrustServerCertificate=True;";
-
-// Đăng ký SQL Server
+// Đăng ký SQL Server - tự đọc từ ConnectionStrings__DefaultConnection
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Đăng ký Services
 builder.Services.AddScoped<IProductService, ProductService>();
@@ -37,16 +24,9 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 
 // JWT Authentication
 var jwtSecret = builder.Configuration["JwtSettings:Secret"]
-    ?? Environment.GetEnvironmentVariable("JwtSettings:Secret")
     ?? "your-super-secret-key-minimum-32-characters-long-here-for-HS256";
-
-var jwtIssuer = builder.Configuration["JwtSettings:Issuer"]
-    ?? Environment.GetEnvironmentVariable("JwtSettings:Issuer")
-    ?? "TranHuuPhuoc_App";
-
-var jwtAudience = builder.Configuration["JwtSettings:Audience"]
-    ?? Environment.GetEnvironmentVariable("JwtSettings:Audience")
-    ?? "TranHuuPhuoc_Users";
+var jwtIssuer = builder.Configuration["JwtSettings:Issuer"] ?? "TranHuuPhuoc_App";
+var jwtAudience = builder.Configuration["JwtSettings:Audience"] ?? "TranHuuPhuoc_Users";
 
 builder.Services.AddAuthentication(options =>
 {
@@ -69,12 +49,11 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddAuthorization();
-
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Thêm CORS nếu cần
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -87,21 +66,14 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Chỉ show Swagger ở Development
+app.UseSwagger();
+app.UseSwaggerUI();
 
-    app.UseSwagger();
-    app.UseSwaggerUI();
-
-
-// Sử dụng CORS
 app.UseCors("AllowAll");
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
-// Thêm dòng này - để Render biết port để listen
 if (app.Environment.IsProduction())
 {
     var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
