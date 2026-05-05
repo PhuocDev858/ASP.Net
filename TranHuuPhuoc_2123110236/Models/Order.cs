@@ -7,7 +7,7 @@
         public string EmployeeId { get; set; }
         public DateTime OrderDate { get; set; } = DateTime.Now;
         public decimal TotalAmount { get; set; }
-        public string Status { get; set; } = "Pending";  // Pending, Shipped, Delivered, Cancelled
+        public string Status { get; set; } = "Pending";  // Pending, Paid, Processing, Shipped, Delivered, Cancelled
         public string ShippingAddress { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime UpdatedAt { get; set; } = DateTime.Now;

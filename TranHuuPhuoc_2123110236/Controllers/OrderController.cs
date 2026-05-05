@@ -116,6 +116,38 @@ namespace TranHuuPhuoc_2123110236.Controllers
             }
         }
 
+        // PUT: api/order/{orderId}/mark-paid
+        [AllowAnonymous]
+        [HttpPut("{orderId}/mark-paid")]
+        public async Task<IActionResult> MarkOrderAsPaid(string orderId)
+        {
+            try
+            {
+                await _orderService.MarkOrderAsPaid(orderId);
+                return Ok(new { message = $"Đánh dấu đơn hàng {orderId} đã thanh toán thành công" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // PUT: api/order/{orderId}/mark-processing
+        [Authorize(Roles = "Staff,Admin")]
+        [HttpPut("{orderId}/mark-processing")]
+        public async Task<IActionResult> MarkOrderAsProcessing(string orderId)
+        {
+            try
+            {
+                await _orderService.MarkOrderAsProcessing(orderId);
+                return Ok(new { message = $"Đánh dấu đơn hàng {orderId} đang xử lý thành công" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
         // GET: api/order/status/{status}
         [Authorize(Roles = "Staff,Admin")]
         [HttpGet("status/{status}")]

@@ -170,7 +170,7 @@ namespace TranHuuPhuoc_2123110236.Services.OrderServices
         {
             try
             {
-                var validStatuses = new[] { "Pending", "Shipped", "Delivered", "Cancelled" };
+                var validStatuses = new[] { "Pending", "Paid", "Processing", "Shipped", "Delivered", "Cancelled" };
                 if (!validStatuses.Contains(newStatus))
                     throw new Exception("Trạng thái không hợp lệ");
 
@@ -242,6 +242,64 @@ namespace TranHuuPhuoc_2123110236.Services.OrderServices
             {
                 _logger.LogError($"Lỗi hủy đơn hàng: {ex.Message}");
                 throw new Exception("Lỗi khi hủy đơn hàng: " + ex.Message);
+            }
+        }
+
+        // Mark Order as Paid
+        public async Task<bool> MarkOrderAsPaid(string orderId)
+        {
+            try
+            {
+                var order = await _context.Orders.FindAsync(orderId);
+                if (order == null)
+                    throw new Exception("Đơn hàng không tồn tại");
+
+                if (order.Status != "Pending")
+                    throw new Exception($"Chỉ có thể thanh toán đơn hàng có trạng thái 'Pending'. Hiện tại: {order.Status}");
+
+                order.Status = "Paid";
+                order.UpdatedAt = DateTime.Now;
+
+                _context.Orders.Update(order);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation($"Đánh dấu đơn hàng {orderId} đã thanh toán");
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi đánh dấu thanh toán: {ex.Message}");
+                throw new Exception("Lỗi khi đánh dấu thanh toán: " + ex.Message);
+            }
+        }
+
+        // Mark Order as Processing
+        public async Task<bool> MarkOrderAsProcessing(string orderId)
+        {
+            try
+            {
+                var order = await _context.Orders.FindAsync(orderId);
+                if (order == null)
+                    throw new Exception("Đơn hàng không tồn tại");
+
+                if (order.Status != "Paid")
+                    throw new Exception($"Chỉ có thể xử lý đơn hàng có trạng thái 'Paid'. Hiện tại: {order.Status}");
+
+                order.Status = "Processing";
+                order.UpdatedAt = DateTime.Now;
+
+                _context.Orders.Update(order);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation($"Đánh dấu đơn hàng {orderId} đang xử lý");
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi đánh dấu xử lý: {ex.Message}");
+                throw new Exception("Lỗi khi đánh dấu xử lý: " + ex.Message);
             }
         }
 

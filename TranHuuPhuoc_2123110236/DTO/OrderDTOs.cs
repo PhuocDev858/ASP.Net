@@ -44,6 +44,6 @@
     // Update Order Status Request
     public class UpdateOrderStatusRequest
     {
-        public string NewStatus { get; set; }  // Pending, Shipped, Delivered, Cancelled
+        public string NewStatus { get; set; }  // Pending, Paid, Processing, Shipped, Delivered, Cancelled
     }
 }

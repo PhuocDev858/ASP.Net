@@ -10,6 +10,8 @@ namespace TranHuuPhuoc_2123110236.Services.OrderServices
         Task<List<OrderResponse>> GetAllOrders();
         Task<bool> UpdateOrderStatus(string orderId, string newStatus);
         Task<bool> CancelOrder(string orderId);
+        Task<bool> MarkOrderAsPaid(string orderId);
+        Task<bool> MarkOrderAsProcessing(string orderId);
         Task<List<OrderResponse>> GetOrdersByStatus(string status);
         Task<int> GetOrderCount();
         Task<decimal> GetTotalRevenue();
