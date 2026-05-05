@@ -198,7 +198,6 @@ namespace TranHuuPhuoc_2123110236.Controllers
                     // Update order
                     order.Status = "Paid";
                     order.UpdatedAt = DateTime.Now;
-                    _context.Orders.Update(order);
                 }
                 else if (notification.Status == "Failed")
                 {
@@ -207,7 +206,7 @@ namespace TranHuuPhuoc_2123110236.Controllers
                     payment.UpdatedAt = DateTime.Now;
                 }
 
-                _context.Payments.Update(payment);
+                // Không cần .Update() - EF đã tracking entities
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation($"Payment {payment.PaymentId} updated to {payment.Status}");
@@ -228,27 +227,30 @@ namespace TranHuuPhuoc_2123110236.Controllers
         {
             try
             {
-                var payment = await _context.Payments.FirstOrDefaultAsync(p => p.OrderId == orderId);
+                var payment = await _context.Payments
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.OrderId == orderId);
+                    
                 if (payment == null)
                     return NotFound(new { message = "Không tìm thấy thông tin thanh toán" });
 
                 return Ok(new
                 {
-                    orderId = payment.OrderId,
+                    orderId = payment.OrderId ?? "",
                     amount = payment.Amount,
-                    status = payment.Status,
-                    method = payment.PaymentMethod,
-                    transactionId = payment.TransactionId,
+                    status = payment.Status ?? "Pending",
+                    method = payment.PaymentMethod ?? "VietQR",
+                    transactionId = payment.TransactionId ?? "",
                     transactionDate = payment.CompletedAt,
                     createdAt = payment.CreatedAt,
                     updatedAt = payment.UpdatedAt,
-                    notes = payment.Notes
+                    notes = payment.Notes ?? ""
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error getting VietQR status: {ex.Message}");
-                return BadRequest(new { message = ex.Message });
+                _logger.LogError($"Error getting VietQR status: {ex.Message}\n{ex.StackTrace}");
+                return BadRequest(new { message = $"Lỗi hệ thống: {ex.Message}" });
             }
         }
     }
