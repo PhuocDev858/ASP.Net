@@ -48,6 +48,26 @@ namespace TranHuuPhuoc_2123110236.Controllers
                 if (description.Length > 25)
                     description = description.Substring(0, 25);
 
+                // Tạo hoặc cập nhật Payment record với status = Pending
+                var existingPayment = await _context.Payments.FirstOrDefaultAsync(p => p.OrderId == request.OrderId);
+                
+                if (existingPayment == null)
+                {
+                    var payment = new Payment
+                    {
+                        PaymentId = Guid.NewGuid().ToString(),
+                        OrderId = request.OrderId,
+                        Amount = request.Amount,
+                        PaymentMethod = "VietQR",
+                        Status = "Pending",
+                        CreatedAt = DateTime.Now,
+                        UpdatedAt = DateTime.Now,
+                        Notes = "QR code generated, waiting for payment"
+                    };
+                    _context.Payments.Add(payment);
+                    await _context.SaveChangesAsync();
+                }
+
                 // Tạo URL QR từ VietQR API
                 var qrImageUrl = _vietQRService.GenerateQRUrl(
                     request.OrderId,
