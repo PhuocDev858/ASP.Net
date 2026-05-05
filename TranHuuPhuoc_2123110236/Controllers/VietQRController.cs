@@ -15,16 +15,53 @@ namespace TranHuuPhuoc_2123110236.Controllers
         private readonly IVietQRService _vietQRService;
         private readonly AppDbContext _context;
         private readonly ILogger<VietQRController> _logger;
+        private readonly IConfiguration _configuration;
 
-        public VietQRController(IVietQRService vietQRService, AppDbContext context, ILogger<VietQRController> logger)
+        public VietQRController(IVietQRService vietQRService, AppDbContext context, ILogger<VietQRController> logger, IConfiguration configuration)
         {
             _vietQRService = vietQRService;
             _context = context;
             _logger = logger;
+            _configuration = configuration;
+        }
+
+        // GET: api/vietqr/test/{orderId} - Test để kiểm tra order tồn tại
+        [HttpGet("test/{orderId}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> TestOrderExists(string orderId)
+        {
+            try
+            {
+                var order = await _context.Orders.FindAsync(orderId);
+                if (order == null)
+                {
+                    return Ok(new
+                    {
+                        exists = false,
+                        message = $"Order {orderId} không tồn tại",
+                        orderId = orderId
+                    });
+                }
+
+                return Ok(new
+                {
+                    exists = true,
+                    message = "Order tồn tại",
+                    orderId = order.OrderId,
+                    totalAmount = order.TotalAmount,
+                    status = order.Status,
+                    createdAt = order.OrderDate
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         // POST: api/vietqr/create-qr
         [HttpPost("create-qr")]
+        [AllowAnonymous]
         public async Task<IActionResult> CreateVietQRPayment([FromBody] VietQRPaymentRequest request)
         {
             try
@@ -35,13 +72,23 @@ namespace TranHuuPhuoc_2123110236.Controllers
                 if (request.Amount <= 0)
                     return BadRequest(new { message = "Số tiền phải lớn hơn 0" });
 
+                _logger.LogInformation($"Creating VietQR payment for orderId: {request.OrderId}, amount: {request.Amount}");
+
                 // Kiểm tra order tồn tại
                 var order = await _context.Orders.FindAsync(request.OrderId);
                 if (order == null)
-                    return NotFound(new { message = "Đơn hàng không tồn tại" });
+                {
+                    _logger.LogWarning($"Order not found: {request.OrderId}");
+                    return NotFound(new { message = $"Không tìm thấy đơn hàng có ID: {request.OrderId}" });
+                }
+
+                _logger.LogInformation($"Order found. Order.TotalAmount: {order.TotalAmount}, Request.Amount: {request.Amount}");
 
                 if (order.TotalAmount != request.Amount)
-                    return BadRequest(new { message = "Số tiền không khớp với đơn hàng" });
+                {
+                    _logger.LogWarning($"Amount mismatch for order {request.OrderId}. Expected: {order.TotalAmount}, Got: {request.Amount}");
+                    return BadRequest(new { message = $"Số tiền không khớp. Đơn hàng: {order.TotalAmount}đ, Request: {request.Amount}đ" });
+                }
 
                 // Tạo mô tả (max 25 chars)
                 var description = request.Description ?? $"Don hang {request.OrderId}";
@@ -57,6 +104,7 @@ namespace TranHuuPhuoc_2123110236.Controllers
                     {
                         PaymentId = Guid.NewGuid().ToString(),
                         OrderId = request.OrderId,
+                        CustomerId = order.CustomerId,  // Lấy từ Order
                         Amount = request.Amount,
                         PaymentMethod = "VietQR",
                         Status = "Pending",
@@ -66,6 +114,7 @@ namespace TranHuuPhuoc_2123110236.Controllers
                     };
                     _context.Payments.Add(payment);
                     await _context.SaveChangesAsync();
+                    _logger.LogInformation($"Payment record created: {payment.PaymentId}");
                 }
 
                 // Tạo URL QR từ VietQR API
@@ -76,11 +125,11 @@ namespace TranHuuPhuoc_2123110236.Controllers
                 );
 
                 // Lấy config VietQR
-                var bankCode = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build()["VietQR:BankCode"] ?? "970422";
-                var accountNumber = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build()["VietQR:AccountNumber"] ?? "808080190705";
-                var accountName = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build()["VietQR:AccountName"] ?? "Tran Huu Phuoc";
+                var bankCode = _configuration["VietQR:BankCode"] ?? "970422";
+                var accountNumber = _configuration["VietQR:AccountNumber"] ?? "808080190705";
+                var accountName = _configuration["VietQR:AccountName"] ?? "Tran Huu Phuoc";
 
-                _logger.LogInformation($"VietQR payment created for order {request.OrderId}, amount {request.Amount}");
+                _logger.LogInformation($"VietQR payment QR created for order {request.OrderId}, amount {request.Amount}");
 
                 return Ok(new VietQRPaymentResponse
                 {
@@ -96,13 +145,14 @@ namespace TranHuuPhuoc_2123110236.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error creating VietQR payment: {ex.Message}");
-                return BadRequest(new { message = ex.Message });
+                _logger.LogError($"Error creating VietQR payment: {ex.Message}\n{ex.StackTrace}");
+                return BadRequest(new { message = $"Lỗi hệ thống: {ex.Message}" });
             }
         }
 
         // POST: api/vietqr/webhook (Webhook từ ngân hàng khi khách thanh toán)
         [HttpPost("webhook")]
+        [AllowAnonymous]
         public async Task<IActionResult> HandleVietQRWebhook([FromBody] VietQRWebhookNotification notification)
         {
             try
@@ -126,6 +176,7 @@ namespace TranHuuPhuoc_2123110236.Controllers
                     {
                         PaymentId = Guid.NewGuid().ToString(),
                         OrderId = notification.OrderId,
+                        CustomerId = order.CustomerId,  // Lấy từ Order
                         Amount = notification.Amount,
                         PaymentMethod = "VietQR",
                         Status = "Pending",
@@ -172,6 +223,7 @@ namespace TranHuuPhuoc_2123110236.Controllers
 
         // GET: api/vietqr/{orderId}
         [HttpGet("{orderId}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetVietQRStatus(string orderId)
         {
             try
