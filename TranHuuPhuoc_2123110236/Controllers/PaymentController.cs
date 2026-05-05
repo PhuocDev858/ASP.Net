@@ -107,7 +107,7 @@ namespace TranHuuPhuoc_2123110236.Controllers
                 // Update Payment record
                 if (!string.IsNullOrWhiteSpace(orderId))
                 {
-                    var payment = await _context.Payment.FirstOrDefaultAsync(p => p.OrderId == orderId);
+                    var payment = await _context.Payments.FirstOrDefaultAsync(p => p.OrderId == orderId);
                     if (payment != null)
                     {
                         payment.TransactionId = transactionNo;
@@ -118,7 +118,7 @@ namespace TranHuuPhuoc_2123110236.Controllers
                             payment.CompletedAt = DateTime.Now;
                         }
 
-                        _context.Payment.Update(payment);
+                        _context.Payments.Update(payment);
                         await _context.SaveChangesAsync();
 
                         _logger.LogInformation($"Payment updated for order {orderId}, status: {payment.Status}");

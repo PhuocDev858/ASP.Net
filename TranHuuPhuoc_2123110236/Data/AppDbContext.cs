@@ -15,6 +15,7 @@ namespace TranHuuPhuoc_2123110236.Data
         public DbSet<Customer> Customer { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
+        public DbSet<Payment> Payments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -116,6 +117,31 @@ namespace TranHuuPhuoc_2123110236.Data
                 entity.HasOne(od => od.Product)
                     .WithMany()
                     .HasForeignKey(od => od.ProductId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<Payment>(entity =>
+            {
+                entity.HasKey(e => e.PaymentId);
+                entity.Property(e => e.PaymentId).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.OrderId).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.CustomerId).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.Amount).HasPrecision(18, 2);
+                entity.Property(e => e.PaymentMethod).HasMaxLength(50);
+                entity.Property(e => e.Status).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.TransactionId).HasMaxLength(100);
+                entity.Property(e => e.ConfirmationCode).HasMaxLength(100);
+                entity.Property(e => e.Notes).HasMaxLength(500);
+                entity.ToTable("Payments");
+
+                entity.HasOne(p => p.Order)
+                    .WithMany()
+                    .HasForeignKey(p => p.OrderId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(p => p.Customer)
+                    .WithMany()
+                    .HasForeignKey(p => p.CustomerId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
         }
