@@ -110,6 +110,7 @@ namespace TranHuuPhuoc_2123110236.Services
                 existingProduct.Price = product.Price;
                 existingProduct.Stock = product.Stock;
                 existingProduct.Description = product.Description;
+                existingProduct.ImageUrl = product.ImageUrl;
                 existingProduct.UpdatedAt = DateTime.Now;
 
                 _context.Product.Update(existingProduct);

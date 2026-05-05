@@ -24,6 +24,7 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IEmployeeAuthService, EmployeeAuthService>();
 builder.Services.AddScoped<ICustomerAuthService, CustomerAuthService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 
 // JWT Authentication
 var jwtSecret = builder.Configuration["JwtSettings:Secret"]
@@ -68,6 +69,16 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// Tạo thư mục uploads nếu chưa tồn tại
+var uploadsFolderPath = Path.Combine(app.Environment.WebRootPath ?? "wwwroot", "uploads", "images");
+if (!Directory.Exists(uploadsFolderPath))
+{
+    Directory.CreateDirectory(uploadsFolderPath);
+}
+
+// Phục vụ static files (CSS, JS, ảnh, v.v.)
+app.UseStaticFiles();
 
 app.UseSwagger();
 app.UseSwaggerUI();

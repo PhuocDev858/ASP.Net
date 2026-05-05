@@ -9,10 +9,12 @@ namespace TranHuuPhuoc_2123110236.Controllers
     public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;
+        private readonly IFileUploadService _fileUploadService;
 
-        public ProductController(IProductService productService)
+        public ProductController(IProductService productService, IFileUploadService fileUploadService)
         {
             _productService = productService;
+            _fileUploadService = fileUploadService;
         }
 
         // GET: api/products
@@ -158,6 +160,58 @@ namespace TranHuuPhuoc_2123110236.Controllers
             {
                 var averagePrice = await _productService.GetAveragePriceByCategory(category);
                 return Ok(new { category = category, averagePrice = averagePrice });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // POST: api/products/upload-image
+        [HttpPost("upload-image")]
+        public async Task<IActionResult> UploadImage(IFormFile file)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                {
+                    return BadRequest(new { message = "File không được trống" });
+                }
+
+                var imageUrl = await _fileUploadService.UploadImageAsync(file);
+                return Ok(new 
+                { 
+                    message = "Upload ảnh thành công",
+                    imageUrl = imageUrl,
+                    fileName = Path.GetFileName(imageUrl)
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // DELETE: api/products/delete-image?imageUrl=xxx
+        [HttpDelete("delete-image")]
+        public async Task<IActionResult> DeleteImage(string imageUrl)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(imageUrl))
+                {
+                    return BadRequest(new { message = "URL ảnh không được trống" });
+                }
+
+                var result = await _fileUploadService.DeleteImageAsync(imageUrl);
+                if (result)
+                {
+                    return Ok(new { message = "Xóa ảnh thành công" });
+                }
+                else
+                {
+                    return NotFound(new { message = "Ảnh không tồn tại" });
+                }
             }
             catch (Exception ex)
             {
