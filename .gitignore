@@ -361,3 +361,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/VIETQR_IMPLEMENTATION_COMPLETE.md
+/VietQR_INTEGRATION_GUIDE.md
+/VIETQR_QUICK_REFERENCE.md
+/VietQR_SETUP_CHECKLIST.md
