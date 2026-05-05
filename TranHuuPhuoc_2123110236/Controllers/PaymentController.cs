@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TranHuuPhuoc_2123110236.Data;
 using TranHuuPhuoc_2123110236.DTOs;
 using TranHuuPhuoc_2123110236.Models;
@@ -158,7 +159,7 @@ namespace TranHuuPhuoc_2123110236.Controllers
                 if (string.IsNullOrWhiteSpace(request.OrderId))
                     return BadRequest(new { message = "OrderId không được để trống" });
 
-                var payment = await _context.Payment.FirstOrDefaultAsync(p => p.OrderId == request.OrderId);
+                var payment = await _context.Payments.FirstOrDefaultAsync(p => p.OrderId == request.OrderId);
                 if (payment == null)
                     return NotFound(new { message = "Không tìm thấy thông tin thanh toán" });
 
@@ -193,7 +194,7 @@ namespace TranHuuPhuoc_2123110236.Controllers
                 if (request.Amount <= 0)
                     return BadRequest(new { message = "Số tiền hoàn lại phải lớn hơn 0" });
 
-                var payment = await _context.Payment.FirstOrDefaultAsync(p => p.OrderId == request.OrderId);
+                var payment = await _context.Payments.FirstOrDefaultAsync(p => p.OrderId == request.OrderId);
                 if (payment == null)
                     return NotFound(new { message = "Không tìm thấy thông tin thanh toán" });
 
@@ -205,7 +206,7 @@ namespace TranHuuPhuoc_2123110236.Controllers
                 payment.Notes = request.Reason ?? "Hoàn tiền";
                 payment.UpdatedAt = DateTime.Now;
 
-                _context.Payment.Update(payment);
+                _context.Payments.Update(payment);
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation($"Payment refunded for order {request.OrderId}, amount: {request.Amount}");
@@ -232,7 +233,7 @@ namespace TranHuuPhuoc_2123110236.Controllers
         {
             try
             {
-                var payment = await _context.Payment.FirstOrDefaultAsync(p => p.OrderId == orderId);
+                var payment = await _context.Payments.FirstOrDefaultAsync(p => p.OrderId == orderId);
                 if (payment == null)
                     return NotFound(new { message = "Không tìm thấy thông tin thanh toán" });
 
