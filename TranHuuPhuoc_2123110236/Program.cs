@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using TranHuuPhuoc_2123110236.Services.OrderServices;
+using Amazon.S3;
+using Amazon;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -67,6 +69,22 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader();
     });
 });
+
+// Đăng ký AWS S3 Client
+var useS3 = bool.Parse(builder.Configuration["FileUpload:UseS3"] ?? "false");
+if (useS3)
+{
+    var awsAccessKey = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID")
+        ?? builder.Configuration["AWS:S3:AccessKey"];
+    var awsSecretKey = Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY")
+        ?? builder.Configuration["AWS:S3:SecretKey"];
+    var awsRegion = builder.Configuration["AWS:S3:Region"] ?? "ap-southeast-1";
+
+    var credentials = new Amazon.Runtime.BasicAWSCredentials(awsAccessKey, awsSecretKey);
+    var config = new AmazonS3Config { RegionEndpoint = Amazon.RegionEndpoint.GetBySystemName(awsRegion) };
+    
+    builder.Services.AddSingleton<IAmazonS3>(sp => new AmazonS3Client(credentials, config));
+}
 
 var app = builder.Build();
 
