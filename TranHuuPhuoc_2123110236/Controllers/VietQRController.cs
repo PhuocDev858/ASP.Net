@@ -55,10 +55,6 @@ namespace TranHuuPhuoc_2123110236.Controllers
                     description
                 );
 
-                // Tạo mã QR dạng ảnh (base64)
-                var qrCodeBytes = _vietQRService.GenerateQRCode(qrImageUrl);
-                var qrCodeBase64 = Convert.ToBase64String(qrCodeBytes);
-
                 // Lấy config VietQR
                 var bankCode = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build()["VietQR:BankCode"] ?? "970422";
                 var accountNumber = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build()["VietQR:AccountNumber"] ?? "808080190705";
@@ -69,7 +65,7 @@ namespace TranHuuPhuoc_2123110236.Controllers
                 return Ok(new VietQRPaymentResponse
                 {
                     QRImageUrl = qrImageUrl,
-                    QRCodeBase64 = qrCodeBase64,
+                    QRCodeBase64 = "",  // Không dùng base64, chỉ dùng URL
                     OrderId = request.OrderId,
                     Amount = request.Amount,
                     AccountNumber = accountNumber,
