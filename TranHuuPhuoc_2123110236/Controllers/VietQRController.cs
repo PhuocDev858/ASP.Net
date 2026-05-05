@@ -191,6 +191,7 @@ namespace TranHuuPhuoc_2123110236.Controllers
                 {
                     payment.Status = "Success";
                     payment.TransactionId = notification.TransactionId;
+                    payment.ConfirmationCode = notification.ConfirmationCode;
                     payment.CompletedAt = notification.TransactionDate;
                     payment.Notes = $"VietQR thanh toán từ {notification.FromAccountName}";
                     payment.UpdatedAt = DateTime.Now;

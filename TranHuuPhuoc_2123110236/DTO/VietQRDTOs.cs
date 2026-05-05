@@ -27,6 +27,7 @@ namespace TranHuuPhuoc_2123110236.DTOs
         public string OrderId { get; set; }
         public decimal Amount { get; set; }
         public string TransactionId { get; set; }
+        public string ConfirmationCode { get; set; }  // Mã xác nhận từ ngân hàng
         public DateTime TransactionDate { get; set; }
         public string FromAccountNumber { get; set; }
         public string FromAccountName { get; set; }
