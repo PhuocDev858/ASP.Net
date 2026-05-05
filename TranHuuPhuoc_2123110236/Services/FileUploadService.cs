@@ -103,11 +103,7 @@ namespace TranHuuPhuoc_2123110236.Services
                         BucketName = bucketName,
                         Key = s3Key,
                         InputStream = memoryStream,
-                        ContentType = file.ContentType,
-                        Metadata =
-                        {
-                            { "original-name", file.FileName }
-                        }
+                        ContentType = file.ContentType
                     };
 
                     await _s3Client!.PutObjectAsync(putRequest);
