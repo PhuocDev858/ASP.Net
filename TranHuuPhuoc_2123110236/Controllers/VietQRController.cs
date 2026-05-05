@@ -111,7 +111,7 @@ namespace TranHuuPhuoc_2123110236.Controllers
                         PaymentId = Guid.NewGuid().ToString(),
                         OrderId = notification.OrderId,
                         Amount = notification.Amount,
-                        Method = "VietQR",
+                        PaymentMethod = "VietQR",
                         Status = "Pending",
                         CreatedAt = DateTime.Now,
                         UpdatedAt = DateTime.Now
@@ -124,7 +124,7 @@ namespace TranHuuPhuoc_2123110236.Controllers
                 {
                     payment.Status = "Success";
                     payment.TransactionId = notification.TransactionId;
-                    payment.TransactionDate = notification.TransactionDate;
+                    payment.CompletedAt = notification.TransactionDate;
                     payment.Notes = $"VietQR thanh toán từ {notification.FromAccountName}";
                     payment.UpdatedAt = DateTime.Now;
 
@@ -169,9 +169,9 @@ namespace TranHuuPhuoc_2123110236.Controllers
                     orderId = payment.OrderId,
                     amount = payment.Amount,
                     status = payment.Status,
-                    method = payment.Method,
+                    method = payment.PaymentMethod,
                     transactionId = payment.TransactionId,
-                    transactionDate = payment.TransactionDate,
+                    transactionDate = payment.CompletedAt,
                     createdAt = payment.CreatedAt,
                     updatedAt = payment.UpdatedAt,
                     notes = payment.Notes
