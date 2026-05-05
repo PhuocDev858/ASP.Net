@@ -27,6 +27,7 @@ builder.Services.AddScoped<IEmployeeAuthService, EmployeeAuthService>();
 builder.Services.AddScoped<ICustomerAuthService, CustomerAuthService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
+builder.Services.AddScoped<IVNPayService, VNPayService>();
 
 // JWT Authentication
 var jwtSecret = builder.Configuration["JwtSettings:Secret"]
