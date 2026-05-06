@@ -95,6 +95,22 @@ if (useS3)
 
 var app = builder.Build();
 
+// Auto-apply pending migrations on startup
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        db.Database.Migrate();
+        Console.WriteLine("✓ Database migrations applied successfully");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"✗ Error applying migrations: {ex.Message}");
+        // Không throw, app vẫn chạy để admin có thể fix
+    }
+}
+
 // Tạo thư mục uploads nếu chưa tồn tại
 var uploadsFolderPath = Path.Combine(app.Environment.WebRootPath ?? "wwwroot", "uploads", "images");
 if (!Directory.Exists(uploadsFolderPath))
