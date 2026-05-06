@@ -55,53 +55,61 @@ namespace TranHuuPhuoc_2123110236.Services
         {
             try
             {
+                var createDate = DateTime.Now.ToString("yyyyMMddHHmmss");
+                
+                // Minimal parameters set (only essential ones)
                 var vnPayData = new Dictionary<string, string>
                 {
-                    { "vnp_Version", "2.1.0" },
-                    { "vnp_Command", "pay" },
-                    { "vnp_TmnCode", _tmnCode },
                     { "vnp_Amount", ((long)(amount * 100)).ToString() },
+                    { "vnp_Command", "pay" },
+                    { "vnp_CreateDate", createDate },
                     { "vnp_CurrCode", "VND" },
-                    { "vnp_TxnRef", orderId },
+                    { "vnp_Locale", "vn" },
                     { "vnp_OrderInfo", orderInfo },
                     { "vnp_OrderType", "other" },
-                    { "vnp_Locale", "vn" },
                     { "vnp_ReturnUrl", _returnUrl },
-                    { "vnp_IpAddr", ipAddress },
-                    { "vnp_CreateDate", DateTime.Now.ToString("yyyyMMddHHmmss") }
+                    { "vnp_TmnCode", _tmnCode },
+                    { "vnp_TxnRef", orderId },
+                    { "vnp_Version", "2.1.0" },
+                    { "vnp_IpAddr", ipAddress }
                 };
 
                 _logger.LogInformation($"===== VNPay Payment URL Creation Start =====");
-                _logger.LogInformation($"OrderId: {orderId}");
-                _logger.LogInformation($"Amount: {amount} (x100 = {(long)(amount * 100)})");
-                _logger.LogInformation($"OrderInfo: {orderInfo}");
-                _logger.LogInformation($"ReturnUrl: {_returnUrl}");
                 _logger.LogInformation($"TmnCode: {_tmnCode}");
-                _logger.LogInformation($"HashSecret length: {_hashSecret?.Length ?? 0}");
+                _logger.LogInformation($"HashSecret: {_hashSecret}");
+                _logger.LogInformation($"OrderId: {orderId}");
+                _logger.LogInformation($"Amount: {amount} VND (x100 = {(long)(amount * 100)})");
+                _logger.LogInformation($"CreateDate: {createDate}");
 
-                // Sắp xếp theo thứ tự bảng chữ cái
-                var sortedVnPayData = vnPayData.OrderBy(kv => kv.Key).ToList();
+                // Sort parameters alphabetically
+                var sortedData = vnPayData.OrderBy(kv => kv.Key).ToList();
 
-                _logger.LogInformation($"Parameters (sorted, count={sortedVnPayData.Count}):");
-                foreach (var item in sortedVnPayData)
+                _logger.LogInformation($"Sorted parameters for hash (count={sortedData.Count}):");
+                foreach (var item in sortedData)
                 {
-                    _logger.LogInformation($"  {item.Key}: {item.Value}");
+                    _logger.LogInformation($"  {item.Key}={item.Value}");
                 }
 
-                // Tạo hash input
-                var hashInput = string.Join("&", sortedVnPayData.Select(kv => $"{kv.Key}={kv.Value}"));
+                // Create hash input string with URL encoding
+                // IMPORTANT: URL-encode both key and value before hashing!
+                var hashInputParts = new List<string>();
+                foreach (var item in sortedData)
+                {
+                    var encodedKey = Uri.EscapeDataString(item.Key);
+                    var encodedValue = Uri.EscapeDataString(item.Value);
+                    hashInputParts.Add($"{encodedKey}={encodedValue}");
+                }
+                var hashInput = string.Join("&", hashInputParts);
+                _logger.LogInformation($"Hash input (URL-encoded): {hashInput}");
 
-                _logger.LogInformation($"Hash input string: {hashInput}");
-
-                // Try HMAC-SHA256 first (common for VNPay)
-                var hash = ComputeHmacSHA256(hashInput, _hashSecret);
-
-                _logger.LogInformation($"Calculated SecureHash (SHA256): {hash}");
+                // Calculate HMAC-SHA512 (NOT SHA256!)
+                var hash = ComputeHmacSHA512(hashInput, _hashSecret);
+                _logger.LogInformation($"SecureHash (SHA256): {hash}");
                 _logger.LogInformation($"Hash length: {hash.Length}");
 
-                // Build payment URL
+                // Build payment URL with URL encoding
                 var paymentUrlBuilder = new StringBuilder(_paymentUrl + "?");
-                foreach (var item in sortedVnPayData)
+                foreach (var item in sortedData)
                 {
                     paymentUrlBuilder.Append($"{item.Key}={Uri.EscapeDataString(item.Value)}&");
                 }
@@ -109,8 +117,7 @@ namespace TranHuuPhuoc_2123110236.Services
 
                 var finalUrl = paymentUrlBuilder.ToString();
                 
-                _logger.LogInformation($"Final Payment URL length: {finalUrl.Length}");
-                _logger.LogInformation($"Final Payment URL: {finalUrl}");
+                _logger.LogInformation($"Final URL: {finalUrl}");
                 _logger.LogInformation($"===== VNPay Payment URL Creation SUCCESS =====");
 
                 return finalUrl;
@@ -152,23 +159,30 @@ namespace TranHuuPhuoc_2123110236.Services
                 verifyData.Remove("vnp_SecureHash");
                 verifyData.Remove("vnp_SecureHashType");
 
-                // Sort and create hash input string exactly as VNPay expects
+                // Sort and create hash input with URL encoding
                 var sortedData = verifyData
-                    .Where(kv => !string.IsNullOrWhiteSpace(kv.Value))  // Skip empty values
+                    .Where(kv => !string.IsNullOrWhiteSpace(kv.Value))
                     .OrderBy(kv => kv.Key)
                     .ToList();
 
-                var hashInput = string.Join("&", sortedData.Select(kv => $"{kv.Key}={kv.Value}"));
+                var hashInputParts = new List<string>();
+                foreach (var item in sortedData)
+                {
+                    var encodedKey = Uri.EscapeDataString(item.Key);
+                    var encodedValue = Uri.EscapeDataString(item.Value);
+                    hashInputParts.Add($"{encodedKey}={encodedValue}");
+                }
+                var hashInput = string.Join("&", hashInputParts);
 
                 _logger.LogInformation($"Parameters for hash (count={sortedData.Count}):");
                 foreach (var item in sortedData)
                 {
                     _logger.LogInformation($"  {item.Key}={item.Value}");
                 }
-                _logger.LogInformation($"Hash input string: {hashInput}");
+                _logger.LogInformation($"Hash input (URL-encoded): {hashInput}");
 
-                // Calculate hash using HMAC-SHA256 (VNPay requirement)
-                var hash = ComputeHmacSHA256(hashInput, _hashSecret).ToLower();
+                // Calculate hash using HMAC-SHA512
+                var hash = ComputeHmacSHA512(hashInput, _hashSecret).ToLower();
 
                 _logger.LogInformation($"Calculated hash: {hash}");
                 _logger.LogInformation($"Expected hash:   {secureHash}");
@@ -228,9 +242,9 @@ namespace TranHuuPhuoc_2123110236.Services
         {
             try
             {
-                // Tính toán request hash using HMAC-SHA256
+                // Tính toán request hash using HMAC-SHA512
                 var data = $"{_tmnCode}|{orderId}|{transactionDate:yyyyMMdd}";
-                var hash = ComputeHmacSHA256(data, _hashSecret);
+                var hash = ComputeHmacSHA512(data, _hashSecret);
 
                 var requestData = new Dictionary<string, string>
                 {
