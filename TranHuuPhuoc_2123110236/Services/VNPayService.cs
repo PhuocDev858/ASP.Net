@@ -119,24 +119,34 @@ namespace TranHuuPhuoc_2123110236.Services
                     return false;
                 }
 
-                var secureHash = vnpayData["vnp_SecureHash"];
+                var secureHash = vnpayData["vnp_SecureHash"].ToLower();
                 _logger.LogInformation($"Received SecureHash: {secureHash}");
                 _logger.LogInformation($"TmnCode: {_tmnCode}");
+                _logger.LogInformation($"HashSecret: {_hashSecret}");
                 _logger.LogInformation($"HashSecret length: {_hashSecret?.Length ?? 0}");
 
-                // Remove vnp_SecureHash from data
-                vnpayData.Remove("vnp_SecureHash");
-                vnpayData.Remove("vnp_SecureHashType");
+                // Create a copy for verification (remove SecureHash and SecureHashType)
+                var verifyData = new Dictionary<string, string>(vnpayData);
+                verifyData.Remove("vnp_SecureHash");
+                verifyData.Remove("vnp_SecureHashType");
 
-                // Sort and create hash input
-                var sortedData = vnpayData.OrderBy(kv => kv.Key).ToList();
+                // Sort and create hash input string exactly as VNPay expects
+                var sortedData = verifyData
+                    .Where(kv => !string.IsNullOrWhiteSpace(kv.Value))  // Skip empty values
+                    .OrderBy(kv => kv.Key)
+                    .ToList();
+
                 var hashInput = string.Join("&", sortedData.Select(kv => $"{kv.Key}={kv.Value}"));
 
+                _logger.LogInformation($"Parameters for hash (count={sortedData.Count}):");
+                foreach (var item in sortedData)
+                {
+                    _logger.LogInformation($"  {item.Key}={item.Value}");
+                }
                 _logger.LogInformation($"Hash input string: {hashInput}");
-                _logger.LogInformation($"HashSecret: {_hashSecret}");
 
-                // Calculate hash using HMAC-SHA512 (VNPay requirement)
-                var hash = ComputeHmacSHA512(hashInput, _hashSecret);
+                // Calculate hash using HMAC-SHA512
+                var hash = ComputeHmacSHA512(hashInput, _hashSecret).ToLower();
 
                 _logger.LogInformation($"Calculated hash: {hash}");
                 _logger.LogInformation($"Expected hash:   {secureHash}");
@@ -146,14 +156,17 @@ namespace TranHuuPhuoc_2123110236.Services
 
                 if (isValid)
                 {
-                    _logger.LogInformation($"✓ VNPay callback verified for order {vnpayData.GetValueOrDefault("vnp_TxnRef")}");
+                    _logger.LogInformation($"✓ VNPay callback verified for order {verifyData.GetValueOrDefault("vnp_TxnRef")}");
+                    _logger.LogInformation($"✓ Response code: {verifyData.GetValueOrDefault("vnp_ResponseCode")}");
+                    _logger.LogInformation($"✓ Transaction no: {verifyData.GetValueOrDefault("vnp_TransactionNo")}");
                     _logger.LogInformation($"===== VNPay Callback Verification SUCCESS =====");
                 }
                 else
                 {
                     _logger.LogWarning($"✗ VNPay callback verification FAILED");
-                    _logger.LogWarning($"Response code: {vnpayData.GetValueOrDefault("vnp_ResponseCode")}");
-                    _logger.LogWarning($"Transaction no: {vnpayData.GetValueOrDefault("vnp_TransactionNo")}");
+                    _logger.LogWarning($"Response code: {verifyData.GetValueOrDefault("vnp_ResponseCode")}");
+                    _logger.LogWarning($"Transaction no: {verifyData.GetValueOrDefault("vnp_TransactionNo")}");
+                    _logger.LogWarning($"Order ID: {verifyData.GetValueOrDefault("vnp_TxnRef")}");
                     _logger.LogWarning($"===== VNPay Callback Verification FAILED =====");
                 }
 
