@@ -57,6 +57,36 @@ namespace TranHuuPhuoc_2123110236.Controllers
                     ipAddress
                 );
 
+                // Tạo hoặc cập nhật Payment record
+                var existingPayment = await _context.Payments.FirstOrDefaultAsync(p => p.OrderId == request.OrderId);
+                
+                if (existingPayment == null)
+                {
+                    var payment = new Payment
+                    {
+                        PaymentId = Guid.NewGuid().ToString(),
+                        OrderId = request.OrderId,
+                        CustomerId = order.CustomerId,
+                        Amount = request.Amount,
+                        PaymentMethod = "VNPay",
+                        Status = "Pending",
+                        CreatedAt = DateTime.Now,
+                        UpdatedAt = DateTime.Now,
+                        Notes = "VNPay payment URL created"
+                    };
+                    _context.Payments.Add(payment);
+                    await _context.SaveChangesAsync();
+                    _logger.LogInformation($"Payment record created: {payment.PaymentId}");
+                }
+                else
+                {
+                    existingPayment.Status = "Pending";
+                    existingPayment.UpdatedAt = DateTime.Now;
+                    existingPayment.Notes = "VNPay payment URL recreated";
+                    _context.Payments.Update(existingPayment);
+                    await _context.SaveChangesAsync();
+                }
+
                 // Generate QR Code
                 var qrCodeBytes = _vnPayService.GenerateQRCode(paymentUrl);
                 var qrCodeBase64 = Convert.ToBase64String(qrCodeBytes);
@@ -114,6 +144,7 @@ namespace TranHuuPhuoc_2123110236.Controllers
                     if (payment != null)
                     {
                         payment.TransactionId = transactionNo;
+                        payment.ConfirmationCode = transactionNo; // Set ConfirmationCode
                         payment.Status = responseCode == "00" ? "Success" : "Failed";
                         payment.UpdatedAt = DateTime.Now;
                         if (responseCode == "00")
@@ -122,6 +153,20 @@ namespace TranHuuPhuoc_2123110236.Controllers
                         }
 
                         _context.Payments.Update(payment);
+                        
+                        // Update Order status if payment is successful
+                        if (responseCode == "00")
+                        {
+                            var order = await _context.Orders.FindAsync(orderId);
+                            if (order != null)
+                            {
+                                order.Status = "Paid";
+                                order.UpdatedAt = DateTime.Now;
+                                _context.Orders.Update(order);
+                                _logger.LogInformation($"Order {orderId} status updated to Paid");
+                            }
+                        }
+                        
                         await _context.SaveChangesAsync();
 
                         _logger.LogInformation($"Payment updated for order {orderId}, status: {payment.Status}");
@@ -138,9 +183,10 @@ namespace TranHuuPhuoc_2123110236.Controllers
                 };
 
                 // Redirect to frontend success/failure page
+                var baseUrl = "https://phuocotakushop.onrender.com"; // Frontend URL
                 var redirectUrl = responseCode == "00"
-                    ? $"https://yourdomain.com/payment-success?orderId={orderId}"
-                    : $"https://yourdomain.com/payment-failed?orderId={orderId}";
+                    ? $"{baseUrl}/payment-success?orderId={orderId}"
+                    : $"{baseUrl}/payment-failed?orderId={orderId}";
 
                 return Redirect(redirectUrl);
             }
