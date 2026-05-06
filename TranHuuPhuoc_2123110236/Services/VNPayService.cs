@@ -93,10 +93,10 @@ namespace TranHuuPhuoc_2123110236.Services
 
                 _logger.LogInformation($"Hash input string: {hashInput}");
 
-                // Tính HMAC-SHA512 hash
-                var hash = ComputeHmacSHA512(hashInput, _hashSecret);
+                // Try HMAC-SHA256 first (common for VNPay)
+                var hash = ComputeHmacSHA256(hashInput, _hashSecret);
 
-                _logger.LogInformation($"Calculated SecureHash: {hash}");
+                _logger.LogInformation($"Calculated SecureHash (SHA256): {hash}");
                 _logger.LogInformation($"Hash length: {hash.Length}");
 
                 // Build payment URL
@@ -167,8 +167,8 @@ namespace TranHuuPhuoc_2123110236.Services
                 }
                 _logger.LogInformation($"Hash input string: {hashInput}");
 
-                // Calculate hash using HMAC-SHA512
-                var hash = ComputeHmacSHA512(hashInput, _hashSecret).ToLower();
+                // Calculate hash using HMAC-SHA256 (VNPay requirement)
+                var hash = ComputeHmacSHA256(hashInput, _hashSecret).ToLower();
 
                 _logger.LogInformation($"Calculated hash: {hash}");
                 _logger.LogInformation($"Expected hash:   {secureHash}");
@@ -228,9 +228,9 @@ namespace TranHuuPhuoc_2123110236.Services
         {
             try
             {
-                // Tính toán request hash using HMAC-SHA512
+                // Tính toán request hash using HMAC-SHA256
                 var data = $"{_tmnCode}|{orderId}|{transactionDate:yyyyMMdd}";
-                var hash = ComputeHmacSHA512(data, _hashSecret);
+                var hash = ComputeHmacSHA256(data, _hashSecret);
 
                 var requestData = new Dictionary<string, string>
                 {
@@ -257,6 +257,20 @@ namespace TranHuuPhuoc_2123110236.Services
             using (var sha256 = SHA256.Create())
             {
                 var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+                var hash = new StringBuilder();
+                foreach (var b in hashedBytes)
+                {
+                    hash.Append(b.ToString("x2"));
+                }
+                return hash.ToString();
+            }
+        }
+
+        private string ComputeHmacSHA256(string input, string key)
+        {
+            using (var hmac = new System.Security.Cryptography.HMACSHA256(Encoding.UTF8.GetBytes(key)))
+            {
+                var hashedBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(input));
                 var hash = new StringBuilder();
                 foreach (var b in hashedBytes)
                 {
