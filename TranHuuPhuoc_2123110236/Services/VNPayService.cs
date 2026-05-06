@@ -71,14 +71,33 @@ namespace TranHuuPhuoc_2123110236.Services
                     { "vnp_CreateDate", DateTime.Now.ToString("yyyyMMddHHmmss") }
                 };
 
+                _logger.LogInformation($"===== VNPay Payment URL Creation Start =====");
+                _logger.LogInformation($"OrderId: {orderId}");
+                _logger.LogInformation($"Amount: {amount} (x100 = {(long)(amount * 100)})");
+                _logger.LogInformation($"OrderInfo: {orderInfo}");
+                _logger.LogInformation($"ReturnUrl: {_returnUrl}");
+                _logger.LogInformation($"TmnCode: {_tmnCode}");
+                _logger.LogInformation($"HashSecret length: {_hashSecret?.Length ?? 0}");
+
                 // Sắp xếp theo thứ tự bảng chữ cái
                 var sortedVnPayData = vnPayData.OrderBy(kv => kv.Key).ToList();
+
+                _logger.LogInformation($"Parameters (sorted, count={sortedVnPayData.Count}):");
+                foreach (var item in sortedVnPayData)
+                {
+                    _logger.LogInformation($"  {item.Key}: {item.Value}");
+                }
 
                 // Tạo hash input
                 var hashInput = string.Join("&", sortedVnPayData.Select(kv => $"{kv.Key}={kv.Value}"));
 
-                // Tính HMAC-SHA512 hash (VNPay requirement)
+                _logger.LogInformation($"Hash input string: {hashInput}");
+
+                // Tính HMAC-SHA512 hash
                 var hash = ComputeHmacSHA512(hashInput, _hashSecret);
+
+                _logger.LogInformation($"Calculated SecureHash: {hash}");
+                _logger.LogInformation($"Hash length: {hash.Length}");
 
                 // Build payment URL
                 var paymentUrlBuilder = new StringBuilder(_paymentUrl + "?");
@@ -89,7 +108,10 @@ namespace TranHuuPhuoc_2123110236.Services
                 paymentUrlBuilder.Append($"vnp_SecureHash={hash}");
 
                 var finalUrl = paymentUrlBuilder.ToString();
-                _logger.LogInformation($"VNPay payment URL created for order {orderId}");
+                
+                _logger.LogInformation($"Final Payment URL length: {finalUrl.Length}");
+                _logger.LogInformation($"Final Payment URL: {finalUrl}");
+                _logger.LogInformation($"===== VNPay Payment URL Creation SUCCESS =====");
 
                 return finalUrl;
             }
