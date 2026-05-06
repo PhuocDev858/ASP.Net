@@ -323,7 +323,7 @@ namespace TranHuuPhuoc_2123110236.Services
                 TransactionId = payment.TransactionId,
                 ConfirmationCode = payment.ConfirmationCode,
                 Notes = payment.Notes,
-                PaymentDate = payment.PaymentDate ?? DateTime.Now,  // Handle null
+                PaymentDate = payment.PaymentDate,
                 CompletedAt = payment.CompletedAt,
                 CreatedAt = payment.CreatedAt,
                 UpdatedAt = payment.UpdatedAt,
