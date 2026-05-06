@@ -13,18 +13,20 @@ namespace TranHuuPhuoc_2123110236.Controllers
     public class PaymentController : ControllerBase
     {
         private readonly IVNPayService _vnPayService;
+        private readonly IPaymentManagementService _paymentManagementService;
         private readonly AppDbContext _context;
         private readonly ILogger<PaymentController> _logger;
 
-        public PaymentController(IVNPayService vnPayService, AppDbContext context, ILogger<PaymentController> logger)
+        public PaymentController(IVNPayService vnPayService, IPaymentManagementService paymentManagementService, AppDbContext context, ILogger<PaymentController> logger)
         {
             _vnPayService = vnPayService;
+            _paymentManagementService = paymentManagementService;
             _context = context;
             _logger = logger;
         }
 
         // POST: api/payment/create-vnpay-payment
-        [Authorize(Roles = "Customer")]
+        [AllowAnonymous]
         [HttpPost("create-vnpay-payment")]
         public async Task<IActionResult> CreateVNPayPayment([FromBody] VNPayPaymentRequest request)
         {
@@ -252,6 +254,178 @@ namespace TranHuuPhuoc_2123110236.Controllers
             catch (Exception ex)
             {
                 _logger.LogError($"Error getting payment: {ex.Message}");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // ========== PAYMENT MANAGEMENT ENDPOINTS ==========
+
+        // GET: api/payment/management/all
+        [Authorize(Roles = "Admin,Staff")]
+        [HttpGet("management/all")]
+        public async Task<ActionResult<List<PaymentDetailResponse>>> GetAllPayments()
+        {
+            try
+            {
+                var payments = await _paymentManagementService.GetAllPayments();
+                return Ok(payments);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error getting all payments: {ex.Message}");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // GET: api/payment/management/{paymentId}
+        [Authorize(Roles = "Admin,Staff,Customer")]
+        [HttpGet("management/{paymentId}")]
+        public async Task<ActionResult<PaymentDetailResponse>> GetPaymentById(string paymentId)
+        {
+            try
+            {
+                var payment = await _paymentManagementService.GetPaymentById(paymentId);
+                return Ok(payment);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error getting payment: {ex.Message}");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // GET: api/payment/management/order/{orderId}
+        [Authorize(Roles = "Admin,Staff,Customer")]
+        [HttpGet("management/order/{orderId}")]
+        public async Task<ActionResult<PaymentDetailResponse>> GetPaymentOrderDetails(string orderId)
+        {
+            try
+            {
+                var payment = await _paymentManagementService.GetPaymentByOrderId(orderId);
+                return Ok(payment);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error getting payment by order: {ex.Message}");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // GET: api/payment/management/customer/{customerId}
+        [Authorize(Roles = "Admin,Staff,Customer")]
+        [HttpGet("management/customer/{customerId}")]
+        public async Task<ActionResult<List<PaymentDetailResponse>>> GetPaymentsByCustomer(string customerId)
+        {
+            try
+            {
+                var payments = await _paymentManagementService.GetPaymentsByCustomer(customerId);
+                return Ok(payments);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error getting customer payments: {ex.Message}");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // GET: api/payment/management/status/{status}
+        [Authorize(Roles = "Admin,Staff")]
+        [HttpGet("management/status/{status}")]
+        public async Task<ActionResult<List<PaymentDetailResponse>>> GetPaymentsByStatus(string status)
+        {
+            try
+            {
+                var payments = await _paymentManagementService.GetPaymentsByStatus(status);
+                return Ok(payments);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error getting payments by status: {ex.Message}");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // GET: api/payment/management/method/{method}
+        [Authorize(Roles = "Admin,Staff")]
+        [HttpGet("management/method/{method}")]
+        public async Task<ActionResult<List<PaymentDetailResponse>>> GetPaymentsByMethod(string method)
+        {
+            try
+            {
+                var payments = await _paymentManagementService.GetPaymentsByMethod(method);
+                return Ok(payments);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error getting payments by method: {ex.Message}");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // POST: api/payment/management/search
+        [Authorize(Roles = "Admin,Staff")]
+        [HttpPost("management/search")]
+        public async Task<ActionResult<List<PaymentDetailResponse>>> SearchPayments([FromBody] PaymentSearchRequest request)
+        {
+            try
+            {
+                var payments = await _paymentManagementService.SearchPayments(request);
+                return Ok(payments);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error searching payments: {ex.Message}");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // GET: api/payment/management/statistics
+        [Authorize(Roles = "Admin,Staff")]
+        [HttpGet("management/statistics")]
+        public async Task<ActionResult<PaymentStatisticsResponse>> GetPaymentStatistics()
+        {
+            try
+            {
+                var stats = await _paymentManagementService.GetPaymentStatistics();
+                return Ok(stats);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error getting statistics: {ex.Message}");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // GET: api/payment/management/daily-revenue
+        [Authorize(Roles = "Admin,Staff")]
+        [HttpGet("management/daily-revenue")]
+        public async Task<ActionResult<List<DailyRevenueResponse>>> GetDailyRevenue([FromQuery] int days = 30)
+        {
+            try
+            {
+                var revenue = await _paymentManagementService.GetDailyRevenue(days);
+                return Ok(revenue);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error getting daily revenue: {ex.Message}");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // GET: api/payment/management/revenue-by-method
+        [Authorize(Roles = "Admin,Staff")]
+        [HttpGet("management/revenue-by-method")]
+        public async Task<ActionResult<List<PaymentMethodRevenueResponse>>> GetRevenueByPaymentMethod()
+        {
+            try
+            {
+                var revenue = await _paymentManagementService.GetRevenueByPaymentMethod();
+                return Ok(revenue);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error getting revenue by method: {ex.Message}");
                 return BadRequest(new { message = ex.Message });
             }
         }

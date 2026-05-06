@@ -77,8 +77,8 @@ namespace TranHuuPhuoc_2123110236.Services
                 // Tạo hash input
                 var hashInput = string.Join("&", sortedVnPayData.Select(kv => $"{kv.Key}={kv.Value}"));
 
-                // Tính SHA256 hash
-                var hash = ComputeSHA256Hash(hashInput + _hashSecret);
+                // Tính HMAC-SHA512 hash (VNPay requirement)
+                var hash = ComputeHmacSHA512(hashInput, _hashSecret);
 
                 // Build payment URL
                 var paymentUrlBuilder = new StringBuilder(_paymentUrl + "?");
@@ -104,12 +104,25 @@ namespace TranHuuPhuoc_2123110236.Services
         {
             try
             {
+                _logger.LogInformation($"===== VNPay Callback Verification Start =====");
+                _logger.LogInformation($"Total parameters received: {vnpayData.Count}");
+
+                // Log all received parameters
+                foreach (var param in vnpayData.OrderBy(x => x.Key))
+                {
+                    _logger.LogInformation($"  {param.Key}: {param.Value}");
+                }
+
                 if (vnpayData == null || !vnpayData.ContainsKey("vnp_SecureHash"))
                 {
+                    _logger.LogWarning("VNPay callback missing vnp_SecureHash");
                     return false;
                 }
 
                 var secureHash = vnpayData["vnp_SecureHash"];
+                _logger.LogInformation($"Received SecureHash: {secureHash}");
+                _logger.LogInformation($"TmnCode: {_tmnCode}");
+                _logger.LogInformation($"HashSecret length: {_hashSecret?.Length ?? 0}");
 
                 // Remove vnp_SecureHash from data
                 vnpayData.Remove("vnp_SecureHash");
@@ -119,25 +132,37 @@ namespace TranHuuPhuoc_2123110236.Services
                 var sortedData = vnpayData.OrderBy(kv => kv.Key).ToList();
                 var hashInput = string.Join("&", sortedData.Select(kv => $"{kv.Key}={kv.Value}"));
 
-                // Calculate hash
-                var hash = ComputeSHA256Hash(hashInput + _hashSecret);
+                _logger.LogInformation($"Hash input string: {hashInput}");
+                _logger.LogInformation($"HashSecret: {_hashSecret}");
+
+                // Calculate hash using HMAC-SHA512 (VNPay requirement)
+                var hash = ComputeHmacSHA512(hashInput, _hashSecret);
+
+                _logger.LogInformation($"Calculated hash: {hash}");
+                _logger.LogInformation($"Expected hash:   {secureHash}");
+                _logger.LogInformation($"Hash match: {hash.Equals(secureHash, StringComparison.OrdinalIgnoreCase)}");
 
                 var isValid = hash.Equals(secureHash, StringComparison.OrdinalIgnoreCase);
 
                 if (isValid)
                 {
-                    _logger.LogInformation($"VNPay callback verified for order {vnpayData.GetValueOrDefault("vnp_TxnRef")}");
+                    _logger.LogInformation($"✓ VNPay callback verified for order {vnpayData.GetValueOrDefault("vnp_TxnRef")}");
+                    _logger.LogInformation($"===== VNPay Callback Verification SUCCESS =====");
                 }
                 else
                 {
-                    _logger.LogWarning($"VNPay callback verification failed");
+                    _logger.LogWarning($"✗ VNPay callback verification FAILED");
+                    _logger.LogWarning($"Response code: {vnpayData.GetValueOrDefault("vnp_ResponseCode")}");
+                    _logger.LogWarning($"Transaction no: {vnpayData.GetValueOrDefault("vnp_TransactionNo")}");
+                    _logger.LogWarning($"===== VNPay Callback Verification FAILED =====");
                 }
 
                 return isValid;
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error verifying VNPay callback: {ex.Message}");
+                _logger.LogError($"Error verifying VNPay callback: {ex.Message}\n{ex.StackTrace}");
+                _logger.LogError($"===== VNPay Callback Verification ERROR =====");
                 return false;
             }
         }
@@ -168,9 +193,9 @@ namespace TranHuuPhuoc_2123110236.Services
         {
             try
             {
-                // Tính toán request hash
+                // Tính toán request hash using HMAC-SHA512
                 var data = $"{_tmnCode}|{orderId}|{transactionDate:yyyyMMdd}";
-                var hash = ComputeSHA256Hash(data + _hashSecret);
+                var hash = ComputeHmacSHA512(data, _hashSecret);
 
                 var requestData = new Dictionary<string, string>
                 {
@@ -197,6 +222,20 @@ namespace TranHuuPhuoc_2123110236.Services
             using (var sha256 = SHA256.Create())
             {
                 var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+                var hash = new StringBuilder();
+                foreach (var b in hashedBytes)
+                {
+                    hash.Append(b.ToString("x2"));
+                }
+                return hash.ToString();
+            }
+        }
+
+        private string ComputeHmacSHA512(string input, string key)
+        {
+            using (var hmac = new System.Security.Cryptography.HMACSHA512(Encoding.UTF8.GetBytes(key)))
+            {
+                var hashedBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(input));
                 var hash = new StringBuilder();
                 foreach (var b in hashedBytes)
                 {
