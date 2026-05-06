@@ -18,7 +18,7 @@ namespace TranHuuPhuoc_2123110236.Services
         {
             try
             {
-                return await _context.Product.ToListAsync();
+                return await _context.Products.ToListAsync();
             }
             catch (Exception ex)
             {
@@ -31,7 +31,7 @@ namespace TranHuuPhuoc_2123110236.Services
         {
             try
             {
-                var product = await _context.Product.FindAsync(id);
+                var product = await _context.Products.FindAsync(id);
                 if (product == null)
                 {
                     throw new Exception("Sản phẩm không tồn tại");
@@ -67,7 +67,7 @@ namespace TranHuuPhuoc_2123110236.Services
                 product.CreatedAt = DateTime.Now;
                 product.UpdatedAt = DateTime.Now;
 
-                _context.Product.Add(product);
+                _context.Products.Add(product);
                 await _context.SaveChangesAsync();
 
                 return product;
@@ -83,7 +83,7 @@ namespace TranHuuPhuoc_2123110236.Services
         {
             try
             {
-                var existingProduct = await _context.Product.FindAsync(id);
+                var existingProduct = await _context.Products.FindAsync(id);
 
                 if (existingProduct == null)
                 {
@@ -113,7 +113,7 @@ namespace TranHuuPhuoc_2123110236.Services
                 existingProduct.ImageUrl = product.ImageUrl;
                 existingProduct.UpdatedAt = DateTime.Now;
 
-                _context.Product.Update(existingProduct);
+                _context.Products.Update(existingProduct);
                 await _context.SaveChangesAsync();
 
                 return existingProduct;
@@ -129,14 +129,14 @@ namespace TranHuuPhuoc_2123110236.Services
         {
             try
             {
-                var product = await _context.Product.FindAsync(id);
+                var product = await _context.Products.FindAsync(id);
 
                 if (product == null)
                 {
                     throw new Exception("Sản phẩm không tồn tại");
                 }
 
-                _context.Product.Remove(product);
+                _context.Products.Remove(product);
                 await _context.SaveChangesAsync();
 
                 return true;
@@ -217,7 +217,7 @@ namespace TranHuuPhuoc_2123110236.Services
         {
             try
             {
-                return await _context.Product.CountAsync();
+                return await _context.Products.CountAsync();
             }
             catch (Exception ex)
             {

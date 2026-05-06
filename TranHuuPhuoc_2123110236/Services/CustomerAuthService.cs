@@ -49,7 +49,7 @@ namespace TranHuuPhuoc_2123110236.Services
 
                 // ❌ Xóa check duplicate CustomerId
 
-                var existingEmail = await _context.Customer.FirstOrDefaultAsync(c => c.Email == request.Email);
+                var existingEmail = await _context.Customers.FirstOrDefaultAsync(c => c.Email == request.Email);
                 if (existingEmail != null)
                     throw new Exception("Email đã được đăng kí");
 
@@ -71,7 +71,7 @@ namespace TranHuuPhuoc_2123110236.Services
                     TotalOrders = 0
                 };
 
-                _context.Customer.Add(customer);
+                _context.Customers.Add(customer);
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation($"Khách hàng {customerId} đã đăng kí thành công");
@@ -103,7 +103,7 @@ namespace TranHuuPhuoc_2123110236.Services
                 if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
                     throw new Exception("Email và mật khẩu không được để trống");
 
-                var customer = await _context.Customer.FirstOrDefaultAsync(c => c.Email == request.Email);
+                var customer = await _context.Customers.FirstOrDefaultAsync(c => c.Email == request.Email);
 
                 if (customer == null)
                     throw new Exception("Email hoặc mật khẩu không chính xác");
@@ -183,7 +183,7 @@ namespace TranHuuPhuoc_2123110236.Services
                 if (request.NewPassword.Length < 6)
                     throw new Exception("Mật khẩu mới phải có ít nhất 6 ký tự");
 
-                var customer = await _context.Customer.FindAsync(customerId);
+                var customer = await _context.Customers.FindAsync(customerId);
                 if (customer == null)
                     throw new Exception("Khách hàng không tồn tại");
 
@@ -193,7 +193,7 @@ namespace TranHuuPhuoc_2123110236.Services
                 customer.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
                 customer.UpdatedAt = DateTime.Now;
 
-                _context.Customer.Update(customer);
+                _context.Customers.Update(customer);
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation($"Khách hàng {customerId} đã đổi mật khẩu");
@@ -212,7 +212,7 @@ namespace TranHuuPhuoc_2123110236.Services
         {
             try
             {
-                var customer = await _context.Customer.FindAsync(customerId);
+                var customer = await _context.Customers.FindAsync(customerId);
                 if (customer == null)
                     throw new Exception("Khách hàng không tồn tại");
 
@@ -239,7 +239,7 @@ namespace TranHuuPhuoc_2123110236.Services
         {
             try
             {
-                var customer = await _context.Customer.FindAsync(customerId);
+                var customer = await _context.Customers.FindAsync(customerId);
                 if (customer == null)
                     throw new Exception("Khách hàng không tồn tại");
 
@@ -248,7 +248,7 @@ namespace TranHuuPhuoc_2123110236.Services
                 customer.Address = request.Address;
                 customer.UpdatedAt = DateTime.Now;
 
-                _context.Customer.Update(customer);
+                _context.Customers.Update(customer);
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation($"Khách hàng {customerId} đã cập nhật hồ sơ");

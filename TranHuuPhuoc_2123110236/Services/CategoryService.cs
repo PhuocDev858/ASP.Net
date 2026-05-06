@@ -18,7 +18,7 @@ namespace TranHuuPhuoc_2123110236.Services
         {
             try
             {
-                return await _context.Category.ToListAsync();
+                return await _context.Categories.ToListAsync();
             }
             catch (Exception ex)
             {
@@ -31,7 +31,7 @@ namespace TranHuuPhuoc_2123110236.Services
         {
             try
             {
-                var category = await _context.Category.FindAsync(id);
+                var category = await _context.Categories.FindAsync(id);
                 if (category == null)
                 {
                     throw new Exception("Danh mục không tồn tại");
@@ -59,7 +59,7 @@ namespace TranHuuPhuoc_2123110236.Services
                     throw new Exception("Tên danh mục không được để trống");
                 }
 
-                var existingCategory = await _context.Category.FindAsync(category.CategoryId);
+                var existingCategory = await _context.Categories.FindAsync(category.CategoryId);
                 if (existingCategory != null)
                 {
                     throw new Exception("ID danh mục đã tồn tại");
@@ -68,7 +68,7 @@ namespace TranHuuPhuoc_2123110236.Services
                 category.CreatedAt = DateTime.Now;
                 category.UpdatedAt = DateTime.Now;
 
-                _context.Category.Add(category);
+                _context.Categories.Add(category);
                 await _context.SaveChangesAsync();
 
                 return category;
@@ -84,7 +84,7 @@ namespace TranHuuPhuoc_2123110236.Services
         {
             try
             {
-                var existingCategory = await _context.Category.FindAsync(id);
+                var existingCategory = await _context.Categories.FindAsync(id);
 
                 if (existingCategory == null)
                 {
@@ -100,7 +100,7 @@ namespace TranHuuPhuoc_2123110236.Services
                 existingCategory.Description = category.Description;
                 existingCategory.UpdatedAt = DateTime.Now;
 
-                _context.Category.Update(existingCategory);
+                _context.Categories.Update(existingCategory);
                 await _context.SaveChangesAsync();
 
                 return existingCategory;
@@ -116,14 +116,14 @@ namespace TranHuuPhuoc_2123110236.Services
         {
             try
             {
-                var category = await _context.Category.FindAsync(id);
+                var category = await _context.Categories.FindAsync(id);
 
                 if (category == null)
                 {
                     throw new Exception("Danh mục không tồn tại");
                 }
 
-                _context.Category.Remove(category);
+                _context.Categories.Remove(category);
                 await _context.SaveChangesAsync();
 
                 return true;
@@ -159,7 +159,7 @@ namespace TranHuuPhuoc_2123110236.Services
         {
             try
             {   
-                return await _context.Category.CountAsync();
+                return await _context.Categories.CountAsync();
             }
             catch (Exception ex)
             {

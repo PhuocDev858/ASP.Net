@@ -31,11 +31,11 @@ namespace TranHuuPhuoc_2123110236.Services.OrderServices
                 if (request.Products == null || request.Products.Count == 0)
                     throw new Exception("Phải chọn ít nhất 1 sản phẩm");
 
-                var customer = await _context.Customer.FindAsync(request.CustomerId);
+                var customer = await _context.Customers.FindAsync(request.CustomerId);
                 if (customer == null || !customer.IsActive)
                     throw new Exception("Khách hàng không tồn tại hoặc không hoạt động");
 
-                var employee = await _context.Employee.FirstOrDefaultAsync(e => e.IsActive);
+                var employee = await _context.Employees..FirstOrDefaultAsync(e => e.IsActive);
                 if (employee == null)
                     throw new Exception("Không có nhân viên nào để xử lý đơn hàng");
 
@@ -57,7 +57,7 @@ namespace TranHuuPhuoc_2123110236.Services.OrderServices
 
                 foreach (var item in request.Products)
                 {
-                    var product = await _context.Product.FindAsync(item.ProductId);
+                    var product = await _context.Products.FindAsync(item.ProductId);
                     if (product == null)
                         throw new Exception($"Sản phẩm {item.ProductId} không tồn tại");
 
@@ -78,7 +78,7 @@ namespace TranHuuPhuoc_2123110236.Services.OrderServices
                     totalAmount += orderDetail.TotalPrice;
 
                     product.Stock -= item.Quantity;
-                    _context.Product.Update(product);
+                    _context.Products.Update(product);
                 }
 
                 order.TotalAmount = totalAmount;
@@ -87,7 +87,7 @@ namespace TranHuuPhuoc_2123110236.Services.OrderServices
                 customer.TotalOrders++;
                 customer.TotalSpent += totalAmount;
                 customer.UpdatedAt = DateTime.Now;
-                _context.Customer.Update(customer);
+                _context.Customers.Update(customer);
 
                 _context.Orders.Add(order);
                 await _context.SaveChangesAsync();
@@ -212,20 +212,20 @@ namespace TranHuuPhuoc_2123110236.Services.OrderServices
 
                 foreach (var detail in order.OrderDetails)
                 {
-                    var product = await _context.Product.FindAsync(detail.ProductId);
+                    var product = await _context.Products.FindAsync(detail.ProductId);
                     if (product != null)
                     {
                         product.Stock += detail.Quantity;
-                        _context.Product.Update(product);
+                        _context.Products.Update(product);
                     }
                 }
 
-                var customer = await _context.Customer.FindAsync(order.CustomerId);
+                var customer = await _context.Customers.FindAsync(order.CustomerId);
                 if (customer != null)
                 {
                     customer.TotalSpent -= order.TotalAmount;
                     customer.TotalOrders--;
-                    _context.Customer.Update(customer);
+                    _context.Customers.Update(customer);
                 }
 
                 order.Status = "Cancelled";
