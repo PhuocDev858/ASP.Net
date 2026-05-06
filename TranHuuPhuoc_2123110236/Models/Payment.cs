@@ -11,7 +11,7 @@
         public string TransactionId { get; set; }
         public string ConfirmationCode { get; set; }
         public string Notes { get; set; }
-        public DateTime PaymentDate { get; set; } = DateTime.Now;
+        public DateTime? PaymentDate { get; set; }
         public DateTime? CompletedAt { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
