@@ -56,8 +56,7 @@ namespace TranHuuPhuoc_2123110236.Services
             try
             {
                 var createDate = DateTime.Now.ToString("yyyyMMddHHmmss");
-                
-                // Minimal parameters set (only essential ones)
+
                 var vnPayData = new Dictionary<string, string>
                 {
                     { "vnp_Amount", ((long)(amount * 100)).ToString() },
@@ -76,7 +75,6 @@ namespace TranHuuPhuoc_2123110236.Services
 
                 _logger.LogInformation($"===== VNPay Payment URL Creation Start =====");
                 _logger.LogInformation($"TmnCode: {_tmnCode}");
-                _logger.LogInformation($"HashSecret: {_hashSecret}");
                 _logger.LogInformation($"OrderId: {orderId}");
                 _logger.LogInformation($"Amount: {amount} VND (x100 = {(long)(amount * 100)})");
                 _logger.LogInformation($"CreateDate: {createDate}");
@@ -84,30 +82,19 @@ namespace TranHuuPhuoc_2123110236.Services
                 // Sort parameters alphabetically
                 var sortedData = vnPayData.OrderBy(kv => kv.Key).ToList();
 
-                _logger.LogInformation($"Sorted parameters for hash (count={sortedData.Count}):");
-                foreach (var item in sortedData)
-                {
-                    _logger.LogInformation($"  {item.Key}={item.Value}");
-                }
-
-                // Create hash input string with URL encoding
-                // IMPORTANT: URL-encode both key and value before hashing!
+                // ✅ Hash tính trên giá trị RAW, KHÔNG URL-encode
                 var hashInputParts = new List<string>();
                 foreach (var item in sortedData)
                 {
-                    var encodedKey = Uri.EscapeDataString(item.Key);
-                    var encodedValue = Uri.EscapeDataString(item.Value);
-                    hashInputParts.Add($"{encodedKey}={encodedValue}");
+                    hashInputParts.Add($"{item.Key}={item.Value}");
                 }
                 var hashInput = string.Join("&", hashInputParts);
-                _logger.LogInformation($"Hash input (URL-encoded): {hashInput}");
+                _logger.LogInformation($"Hash input (raw): {hashInput}");
 
-                // Calculate HMAC-SHA512 (NOT SHA256!)
                 var hash = ComputeHmacSHA512(hashInput, _hashSecret);
-                _logger.LogInformation($"SecureHash (SHA256): {hash}");
-                _logger.LogInformation($"Hash length: {hash.Length}");
+                _logger.LogInformation($"SecureHash: {hash}");
 
-                // Build payment URL with URL encoding
+                // ✅ Build URL thì vẫn URL-encode value bình thường
                 var paymentUrlBuilder = new StringBuilder(_paymentUrl + "?");
                 foreach (var item in sortedData)
                 {
@@ -116,7 +103,6 @@ namespace TranHuuPhuoc_2123110236.Services
                 paymentUrlBuilder.Append($"vnp_SecureHash={hash}");
 
                 var finalUrl = paymentUrlBuilder.ToString();
-                
                 _logger.LogInformation($"Final URL: {finalUrl}");
                 _logger.LogInformation($"===== VNPay Payment URL Creation SUCCESS =====");
 
@@ -136,7 +122,6 @@ namespace TranHuuPhuoc_2123110236.Services
                 _logger.LogInformation($"===== VNPay Callback Verification Start =====");
                 _logger.LogInformation($"Total parameters received: {vnpayData.Count}");
 
-                // Log all received parameters
                 foreach (var param in vnpayData.OrderBy(x => x.Key))
                 {
                     _logger.LogInformation($"  {param.Key}: {param.Value}");
@@ -150,27 +135,24 @@ namespace TranHuuPhuoc_2123110236.Services
 
                 var secureHash = vnpayData["vnp_SecureHash"].ToLower();
                 _logger.LogInformation($"Received SecureHash: {secureHash}");
-                _logger.LogInformation($"TmnCode: {_tmnCode}");
-                _logger.LogInformation($"HashSecret: {_hashSecret}");
                 _logger.LogInformation($"HashSecret length: {_hashSecret?.Length ?? 0}");
 
-                // Create a copy for verification (remove SecureHash and SecureHashType)
+                // Loại bỏ vnp_SecureHash và vnp_SecureHashType trước khi tính
                 var verifyData = new Dictionary<string, string>(vnpayData);
                 verifyData.Remove("vnp_SecureHash");
                 verifyData.Remove("vnp_SecureHashType");
 
-                // Sort and create hash input with URL encoding
                 var sortedData = verifyData
                     .Where(kv => !string.IsNullOrWhiteSpace(kv.Value))
                     .OrderBy(kv => kv.Key)
                     .ToList();
 
+                // ✅ Hash tính trên giá trị RAW, KHÔNG URL-encode
+                // ASP.NET đã tự decode query params rồi, encode lại sẽ sai
                 var hashInputParts = new List<string>();
                 foreach (var item in sortedData)
                 {
-                    var encodedKey = Uri.EscapeDataString(item.Key);
-                    var encodedValue = Uri.EscapeDataString(item.Value);
-                    hashInputParts.Add($"{encodedKey}={encodedValue}");
+                    hashInputParts.Add($"{item.Key}={item.Value}");
                 }
                 var hashInput = string.Join("&", hashInputParts);
 
@@ -179,9 +161,8 @@ namespace TranHuuPhuoc_2123110236.Services
                 {
                     _logger.LogInformation($"  {item.Key}={item.Value}");
                 }
-                _logger.LogInformation($"Hash input (URL-encoded): {hashInput}");
+                _logger.LogInformation($"Hash input (raw): {hashInput}");
 
-                // Calculate hash using HMAC-SHA512
                 var hash = ComputeHmacSHA512(hashInput, _hashSecret).ToLower();
 
                 _logger.LogInformation($"Calculated hash: {hash}");
@@ -242,7 +223,6 @@ namespace TranHuuPhuoc_2123110236.Services
         {
             try
             {
-                // Tính toán request hash using HMAC-SHA512
                 var data = $"{_tmnCode}|{orderId}|{transactionDate:yyyyMMdd}";
                 var hash = ComputeHmacSHA512(data, _hashSecret);
 
@@ -254,43 +234,13 @@ namespace TranHuuPhuoc_2123110236.Services
                     { "SecureHash", hash }
                 };
 
-                // Note: Thực tế cần gọi VNPay API, đây là placeholder
                 _logger.LogInformation($"Transaction status request for order {orderId}");
-
                 return await Task.FromResult(requestData);
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Error getting transaction status: {ex.Message}");
                 throw new Exception($"Lỗi khi lấy trạng thái giao dịch: {ex.Message}");
-            }
-        }
-
-        private string ComputeSHA256Hash(string input)
-        {
-            using (var sha256 = SHA256.Create())
-            {
-                var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
-                var hash = new StringBuilder();
-                foreach (var b in hashedBytes)
-                {
-                    hash.Append(b.ToString("x2"));
-                }
-                return hash.ToString();
-            }
-        }
-
-        private string ComputeHmacSHA256(string input, string key)
-        {
-            using (var hmac = new System.Security.Cryptography.HMACSHA256(Encoding.UTF8.GetBytes(key)))
-            {
-                var hashedBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(input));
-                var hash = new StringBuilder();
-                foreach (var b in hashedBytes)
-                {
-                    hash.Append(b.ToString("x2"));
-                }
-                return hash.ToString();
             }
         }
 
@@ -301,9 +251,7 @@ namespace TranHuuPhuoc_2123110236.Services
                 var hashedBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(input));
                 var hash = new StringBuilder();
                 foreach (var b in hashedBytes)
-                {
                     hash.Append(b.ToString("x2"));
-                }
                 return hash.ToString();
             }
         }
