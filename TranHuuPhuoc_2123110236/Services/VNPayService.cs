@@ -86,12 +86,10 @@ namespace TranHuuPhuoc_2123110236.Services
                 var hashInputParts = new List<string>();
                 foreach (var item in sortedData)
                 {
-                    var encodedKey = Uri.EscapeDataString(item.Key);
-                    var encodedValue = Uri.EscapeDataString(item.Value);
-                    hashInputParts.Add($"{encodedKey}={encodedValue}");
+                    hashInputParts.Add($"{item.Key}={item.Value}"); // ← raw, không EscapeDataString
                 }
                 var hashInput = string.Join("&", hashInputParts); // ← dòng bị thiếu trong file của bạn
-                _logger.LogInformation($"Hash input (encoded): {hashInput}");
+                _logger.LogInformation($"Hash input (raw): {hashInput}");
 
                 var hash = ComputeHmacSHA512(hashInput, _hashSecret);
                 _logger.LogInformation($"SecureHash: {hash}");
