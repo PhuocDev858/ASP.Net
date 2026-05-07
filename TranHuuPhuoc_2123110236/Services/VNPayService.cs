@@ -156,7 +156,9 @@ namespace TranHuuPhuoc_2123110236.Services
                 var hashInputParts = new List<string>();
                 foreach (var item in sortedData)
                 {
-                    hashInputParts.Add($"{item.Key}={item.Value}");
+                    var encodedKey = Uri.EscapeDataString(item.Key).Replace("%20", "+");
+                    var encodedValue = Uri.EscapeDataString(item.Value).Replace("%20", "+");
+                    hashInputParts.Add($"{encodedKey}={encodedValue}");
                 }
                 var hashInput = string.Join("&", hashInputParts);
                 _logger.LogInformation($"Hash input (raw): {hashInput}");
