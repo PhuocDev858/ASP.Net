@@ -82,19 +82,21 @@ namespace TranHuuPhuoc_2123110236.Services
                 // Sort parameters alphabetically
                 var sortedData = vnPayData.OrderBy(kv => kv.Key).ToList();
 
-                // ✅ Hash tính trên giá trị RAW, KHÔNG URL-encode
+                // ✅ CreatePaymentUrl: Hash tính trên giá trị đã URL-encode (VNPay yêu cầu)
                 var hashInputParts = new List<string>();
                 foreach (var item in sortedData)
                 {
-                    hashInputParts.Add($"{item.Key}={item.Value}");
+                    var encodedKey = Uri.EscapeDataString(item.Key);
+                    var encodedValue = Uri.EscapeDataString(item.Value);
+                    hashInputParts.Add($"{encodedKey}={encodedValue}");
                 }
-                var hashInput = string.Join("&", hashInputParts);
-                _logger.LogInformation($"Hash input (raw): {hashInput}");
+                var hashInput = string.Join("&", hashInputParts); // ← dòng bị thiếu trong file của bạn
+                _logger.LogInformation($"Hash input (encoded): {hashInput}");
 
                 var hash = ComputeHmacSHA512(hashInput, _hashSecret);
                 _logger.LogInformation($"SecureHash: {hash}");
 
-                // ✅ Build URL thì vẫn URL-encode value bình thường
+                // Build URL vẫn URL-encode value bình thường
                 var paymentUrlBuilder = new StringBuilder(_paymentUrl + "?");
                 foreach (var item in sortedData)
                 {
@@ -147,8 +149,8 @@ namespace TranHuuPhuoc_2123110236.Services
                     .OrderBy(kv => kv.Key)
                     .ToList();
 
-                // ✅ Hash tính trên giá trị RAW, KHÔNG URL-encode
-                // ASP.NET đã tự decode query params rồi, encode lại sẽ sai
+                // ✅ VerifyCallback: Hash tính trên giá trị RAW
+                // ASP.NET đã tự decode query params rồi, KHÔNG encode lại
                 var hashInputParts = new List<string>();
                 foreach (var item in sortedData)
                 {

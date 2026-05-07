@@ -48,8 +48,8 @@ namespace TranHuuPhuoc_2123110236.Controllers
 
                 // Lấy IP address
                 var ipAddress = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault()
-                    ?? HttpContext.Connection.RemoteIpAddress?.ToString()
-                    ?? "127.0.0.1";
+                ?? HttpContext.Connection.RemoteIpAddress?.ToString()
+                ?? "127.0.0.1";
 
                 // Nếu có nhiều IP trong X-Forwarded-For, lấy cái đầu tiên
                 if (ipAddress.Contains(","))
