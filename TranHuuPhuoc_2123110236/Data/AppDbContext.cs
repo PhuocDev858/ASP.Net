@@ -129,9 +129,9 @@ namespace TranHuuPhuoc_2123110236.Data
                 entity.Property(e => e.Amount).HasPrecision(18, 2);
                 entity.Property(e => e.PaymentMethod).HasMaxLength(50);
                 entity.Property(e => e.Status).HasMaxLength(50).IsRequired();
-                entity.Property(e => e.TransactionId).HasMaxLength(100);
-                entity.Property(e => e.ConfirmationCode).HasMaxLength(100);
-                entity.Property(e => e.Notes).HasMaxLength(500);
+                entity.Property(e => e.TransactionId).HasMaxLength(100).IsRequired(false);
+                entity.Property(e => e.ConfirmationCode).HasMaxLength(100).IsRequired(false);
+                entity.Property(e => e.Notes).HasMaxLength(500).IsRequired(false);
                 entity.ToTable("Payments");
 
                 entity.HasOne(p => p.Order)

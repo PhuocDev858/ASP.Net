@@ -49,7 +49,7 @@ namespace TranHuuPhuoc_2123110236.Services
 
                 // ❌ Xóa check duplicate EmployeeId
 
-                var existingEmail = await _context.Employees..FirstOrDefaultAsync(e => e.Email == request.Email);
+                var existingEmail = await _context.Employees.FirstOrDefaultAsync(e => e.Email == request.Email);
                 if (existingEmail != null)
                     throw new Exception("Email đã được đăng kí");
 
@@ -72,7 +72,7 @@ namespace TranHuuPhuoc_2123110236.Services
                     IsActive = true
                 };
 
-                _context.Employees..Add(employee);
+                _context.Employees.Add(employee);
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation($"Nhân viên {employeeId} đã được tạo thành công");
@@ -94,7 +94,7 @@ namespace TranHuuPhuoc_2123110236.Services
                 if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
                     throw new Exception("Email và mật khẩu không được để trống");
 
-                var employee = await _context.Employees..FirstOrDefaultAsync(e => e.Email == request.Email);
+                var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Email == request.Email);
 
                 if (employee == null)
                     throw new Exception("Email hoặc mật khẩu không chính xác");
@@ -164,7 +164,7 @@ namespace TranHuuPhuoc_2123110236.Services
                 if (request.NewPassword.Length < 6)
                     throw new Exception("Mật khẩu mới phải có ít nhất 6 ký tự");
 
-                var employee = await _context.Employees..FindAsync(employeeId);
+                var employee = await _context.Employees.FindAsync(employeeId);
                 if (employee == null)
                     throw new Exception("Nhân viên không tồn tại");
 
@@ -174,7 +174,7 @@ namespace TranHuuPhuoc_2123110236.Services
                 employee.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
                 employee.UpdatedAt = DateTime.Now;
 
-                _context.Employees..Update(employee);
+                _context.Employees.Update(employee);
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation($"Nhân viên {employeeId} đã đổi mật khẩu");
@@ -193,7 +193,7 @@ namespace TranHuuPhuoc_2123110236.Services
         {
             try
             {
-                var employee = await _context.Employees..FindAsync(employeeId);
+                var employee = await _context.Employees.FindAsync(employeeId);
                 if (employee == null)
                     throw new Exception("Nhân viên không tồn tại");
 
@@ -210,7 +210,7 @@ namespace TranHuuPhuoc_2123110236.Services
         {
             try
             {
-                var employee = await _context.Employees..FindAsync(employeeId);
+                var employee = await _context.Employees.FindAsync(employeeId);
                 if (employee == null)
                     throw new Exception("Nhân viên không tồn tại");
 
@@ -221,7 +221,7 @@ namespace TranHuuPhuoc_2123110236.Services
                 employee.Salary = request.Salary;
                 employee.UpdatedAt = DateTime.Now;
 
-                _context.Employees..Update(employee);
+                _context.Employees.Update(employee);
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation($"Nhân viên {employeeId} đã cập nhật hồ sơ");
@@ -243,14 +243,14 @@ namespace TranHuuPhuoc_2123110236.Services
                 if (newRole != "Admin" && newRole != "Staff")
                     throw new Exception("Quyền không hợp lệ (Admin hoặc Staff)");
 
-                var employee = await _context.Employees..FindAsync(employeeId);
+                var employee = await _context.Employees.FindAsync(employeeId);
                 if (employee == null)
                     throw new Exception("Nhân viên không tồn tại");
 
                 employee.Role = newRole;
                 employee.UpdatedAt = DateTime.Now;
 
-                _context.Employees..Update(employee);
+                _context.Employees.Update(employee);
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation($"Quyền của {employeeId} đã cập nhật thành {newRole}");
@@ -269,7 +269,7 @@ namespace TranHuuPhuoc_2123110236.Services
         {
             try
             {
-                var employees = await _context.Employees..ToListAsync();
+                var employees = await _context.Employees.ToListAsync();
                 return employees.Select(MapToEmployeeDto).ToList();
             }
             catch (Exception ex)
