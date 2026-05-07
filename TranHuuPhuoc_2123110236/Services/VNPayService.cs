@@ -86,13 +86,17 @@ namespace TranHuuPhuoc_2123110236.Services
                 var hashInputParts = new List<string>();
                 foreach (var item in sortedData)
                 {
-                    hashInputParts.Add($"{item.Key}={item.Value}"); // ← raw, không EscapeDataString
+                    var encodedKey = Uri.EscapeDataString(item.Key).Replace("%20", "+");
+                    var encodedValue = Uri.EscapeDataString(item.Value).Replace("%20", "+");
+                    hashInputParts.Add($"{encodedKey}={encodedValue}");
                 }
                 var hashInput = string.Join("&", hashInputParts); // ← dòng bị thiếu trong file của bạn
                 _logger.LogInformation($"Hash input (raw): {hashInput}");
 
                 var hash = ComputeHmacSHA512(hashInput, _hashSecret);
                 _logger.LogInformation($"SecureHash: {hash}");
+                _logger.LogInformation($"HashSecret length: {_hashSecret?.Length ?? 0}");
+                _logger.LogInformation($"HashSecret first4: {_hashSecret?.Substring(0, Math.Min(4, _hashSecret?.Length ?? 0))}");
 
                 // Build URL vẫn URL-encode value bình thường
                 var paymentUrlBuilder = new StringBuilder(_paymentUrl + "?");
