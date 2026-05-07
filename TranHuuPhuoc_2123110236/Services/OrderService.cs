@@ -35,7 +35,7 @@ namespace TranHuuPhuoc_2123110236.Services.OrderServices
                 if (customer == null || !customer.IsActive)
                     throw new Exception("Khách hàng không tồn tại hoặc không hoạt động");
 
-                var employee = await _context.Employees..FirstOrDefaultAsync(e => e.IsActive);
+                var employee = await _context.Employees.FirstOrDefaultAsync(e => e.IsActive);
                 if (employee == null)
                     throw new Exception("Không có nhân viên nào để xử lý đơn hàng");
 

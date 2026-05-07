@@ -157,7 +157,7 @@ namespace TranHuuPhuoc_2123110236.Services
                     throw new Exception("Tên sản phẩm không được để trống");
                 }
 
-                return await _context.Product
+                return await _context.Products
                     .Where(p => p.ProductName.Contains(name))
                     .ToListAsync();
             }
@@ -177,7 +177,7 @@ namespace TranHuuPhuoc_2123110236.Services
                     throw new Exception("Danh mục không được để trống");
                 }
 
-                return await _context.Product
+                return await _context.Products
                     .Where(p => p.CategoryId == category)
                     .ToListAsync();
             }
@@ -202,7 +202,7 @@ namespace TranHuuPhuoc_2123110236.Services
                     throw new Exception("Giá tối thiểu không được lớn hơn giá tối đa");
                 }
 
-                return await _context.Product
+                return await _context.Products
                     .Where(p => p.Price >= minPrice && p.Price <= maxPrice)
                     .ToListAsync();
             }
@@ -235,7 +235,7 @@ namespace TranHuuPhuoc_2123110236.Services
                     throw new Exception("Danh mục không được để trống");
                 }
 
-                var products = await _context.Product
+                var products = await _context.Products
                     .Where(p => p.CategoryId == category)
                     .ToListAsync();
 

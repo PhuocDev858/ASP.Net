@@ -144,7 +144,7 @@ namespace TranHuuPhuoc_2123110236.Services
                     throw new Exception("Tên danh mục không được để trống");
                 }
 
-                return await _context.Category
+                return await _context.Categories
                     .Where(c => c.CategoryName.Contains(name))
                     .ToListAsync();
             }
