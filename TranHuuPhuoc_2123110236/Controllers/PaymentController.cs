@@ -47,13 +47,19 @@ namespace TranHuuPhuoc_2123110236.Controllers
                     return BadRequest(new { message = "Số tiền không khớp với đơn hàng" });
 
                 // Lấy IP address
-                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "0.0.0.0";
+                var ipAddress = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault()
+                    ?? HttpContext.Connection.RemoteIpAddress?.ToString()
+                    ?? "127.0.0.1";
+
+                // Nếu có nhiều IP trong X-Forwarded-For, lấy cái đầu tiên
+                if (ipAddress.Contains(","))
+                    ipAddress = ipAddress.Split(",")[0].Trim();
 
                 // Tạo payment URL
                 var paymentUrl = _vnPayService.CreatePaymentUrl(
                     request.OrderId,
                     request.Amount,
-                    request.OrderInfo ?? $"Thanh toán đơn hàng {request.OrderId}",
+                    request.OrderInfo ?? $"Thanh toan don hang {request.OrderId}",
                     ipAddress
                 );
 
