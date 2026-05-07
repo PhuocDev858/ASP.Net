@@ -63,7 +63,7 @@ namespace TranHuuPhuoc_2123110236.Controllers
                 var paymentUrl = _vnPayService.CreatePaymentUrl(
                     request.OrderId,
                     request.Amount,
-                    request.OrderInfo ?? $"Thanh toan don hang {request.OrderId}",
+                    safeOrderInfo,
                     ipAddress
                 );
 
