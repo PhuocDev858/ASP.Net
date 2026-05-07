@@ -56,6 +56,10 @@ namespace TranHuuPhuoc_2123110236.Controllers
                     ipAddress = ipAddress.Split(",")[0].Trim();
 
                 // Tạo payment URL
+                var safeOrderInfo = RemoveVietnamese(
+                    request.OrderInfo ?? $"Thanh toan don hang {request.OrderId}"
+                );
+
                 var paymentUrl = _vnPayService.CreatePaymentUrl(
                     request.OrderId,
                     request.Amount,
@@ -480,6 +484,30 @@ namespace TranHuuPhuoc_2123110236.Controllers
                 _logger.LogError($"Error getting revenue by method: {ex.Message}");
                 return BadRequest(new { message = ex.Message });
             }
+        }
+        private string RemoveVietnamese(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return text;
+
+            string[] from = {
+        "àáạảãâầấậẩẫăằắặẳẵ", "ÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ",
+        "èéẹẻẽêềếệểễ", "ÈÉẸẺẼÊỀẾỆỂỄ",
+        "ìíịỉĩ", "ÌÍỊỈĨ",
+        "òóọỏõôồốộổỗơờớợởỡ", "ÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠ",
+        "ùúụủũưừứựửữ", "ÙÚỤỦŨƯỪỨỰỬỮ",
+        "ỳýỵỷỹ", "ỲÝỴỶỸ",
+        "đ", "Đ"
+    };
+            string[] to = {
+        "a", "A", "e", "E", "i", "I",
+        "o", "O", "u", "U", "y", "Y", "d", "D"
+    };
+
+            for (int i = 0; i < from.Length; i++)
+                foreach (char c in from[i])
+                    text = text.Replace(c.ToString(), to[i]);
+
+            return text;
         }
     }
 }
