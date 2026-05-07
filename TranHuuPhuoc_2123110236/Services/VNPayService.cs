@@ -86,11 +86,10 @@ namespace TranHuuPhuoc_2123110236.Services
                 var hashInputParts = new List<string>();
                 foreach (var item in sortedData)
                 {
-                    var encodedKey = Uri.EscapeDataString(item.Key);
-                    var encodedValue = Uri.EscapeDataString(item.Value);
-                    hashInputParts.Add($"{encodedKey}={encodedValue}");
+                    hashInputParts.Add($"{item.Key}={item.Value}");
                 }
                 var hashInput = string.Join("&", hashInputParts);
+                _logger.LogInformation($"Hash input (raw): {hashInput}");
 
                 var hash = ComputeHmacSHA512(hashInput, _hashSecret);
                 _logger.LogInformation($"SecureHash: {hash}");
@@ -153,11 +152,10 @@ namespace TranHuuPhuoc_2123110236.Services
                 var hashInputParts = new List<string>();
                 foreach (var item in sortedData)
                 {
-                    var encodedKey = Uri.EscapeDataString(item.Key);
-                    var encodedValue = Uri.EscapeDataString(item.Value);
-                    hashInputParts.Add($"{encodedKey}={encodedValue}");
+                    hashInputParts.Add($"{item.Key}={item.Value}");
                 }
                 var hashInput = string.Join("&", hashInputParts);
+                _logger.LogInformation($"Hash input (raw): {hashInput}");
 
                 var hash = ComputeHmacSHA512(hashInput, _hashSecret).ToLower();
 
