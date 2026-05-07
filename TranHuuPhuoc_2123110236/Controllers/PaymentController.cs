@@ -194,7 +194,7 @@ namespace TranHuuPhuoc_2123110236.Controllers
                 };
 
                 // Redirect to frontend success/failure page
-                var baseUrl = _configuration["FrontendUrl"] ?? "http://localhost:5173"; // Frontend URL
+                var baseUrl = _configuration["FrontendUrl"] ?? "http://localhost:3000"; // Frontend URL
                 var redirectUrl = responseCode == "00"
                     ? $"{baseUrl}/payment-success?orderId={orderId}"
                     : $"{baseUrl}/payment-failed?orderId={orderId}";
