@@ -16,13 +16,14 @@ namespace TranHuuPhuoc_2123110236.Controllers
         private readonly IPaymentManagementService _paymentManagementService;
         private readonly AppDbContext _context;
         private readonly ILogger<PaymentController> _logger;
-
-        public PaymentController(IVNPayService vnPayService, IPaymentManagementService paymentManagementService, AppDbContext context, ILogger<PaymentController> logger)
+        private readonly IConfiguration _configuration;
+        public PaymentController(IVNPayService vnPayService, IPaymentManagementService paymentManagementService, AppDbContext context, ILogger<PaymentController> logger, IConfiguration configuration)
         {
             _vnPayService = vnPayService;
             _paymentManagementService = paymentManagementService;
             _context = context;
             _logger = logger;
+            _configuration = configuration;
         }
 
         // POST: api/payment/create-vnpay-payment
@@ -193,7 +194,7 @@ namespace TranHuuPhuoc_2123110236.Controllers
                 };
 
                 // Redirect to frontend success/failure page
-                var baseUrl = "https://phuocotakushop.onrender.com"; // Frontend URL
+                var baseUrl = _configuration["FrontendUrl"] ?? "http://localhost:5173"; // Frontend URL
                 var redirectUrl = responseCode == "00"
                     ? $"{baseUrl}/payment-success?orderId={orderId}"
                     : $"{baseUrl}/payment-failed?orderId={orderId}";
