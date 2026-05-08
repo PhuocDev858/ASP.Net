@@ -34,7 +34,7 @@ Sửa `appsettings.Development.json`:
     "TmnCode": "YOUR_TMN_CODE",
     "HashSecret": "YOUR_HASH_SECRET",
     "PaymentUrl": "https://sandbox.vnpayment.vn/paygate",
-    "ReturnUrl": "http://localhost:5000/api/payment/vnpay-return",
+    "ReturnUrl": "_context.Customers./api/payment/vnpay-return",
     "ApiUrl": "https://sandbox.vnpayment.vn/merchant_webapi/merchant.html"
   }
 }

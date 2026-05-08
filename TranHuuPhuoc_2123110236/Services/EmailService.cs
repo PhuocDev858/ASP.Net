@@ -45,7 +45,11 @@ namespace TranHuuPhuoc_2123110236.Services
             };
 
             using var client = new SmtpClient();
-            await client.ConnectAsync(smtpHost, smtpPort, SecureSocketOptions.StartTls);
+            // ❌ Port 587 bị Render chặn
+            // await client.ConnectAsync(smtpHost, smtpPort, SecureSocketOptions.StartTls);
+
+            // ✅ Dùng port 465 với SSL
+            await client.ConnectAsync(smtpHost, 465, SecureSocketOptions.SslOnConnect);
             await client.AuthenticateAsync(smtpUser, smtpPass);
             await client.SendAsync(message);
             await client.DisconnectAsync(true);
