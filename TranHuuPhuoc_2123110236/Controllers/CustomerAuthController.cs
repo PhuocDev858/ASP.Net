@@ -110,5 +110,55 @@ namespace TranHuuPhuoc_2123110236.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        // POST: api/customer-auth/forgot-password
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+        {
+            try
+            {
+                await _authService.ForgotPassword(request.Email);
+                return Ok(new { message = "Mã OTP đã được gửi đến email của bạn" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"ForgotPassword error: {ex.Message}");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // POST: api/customer-auth/verify-otp
+        [HttpPost("verify-otp")]
+        public IActionResult VerifyOtp([FromBody] VerifyOtpRequest request)
+        {
+            try
+            {
+                var isValid = _authService.VerifyOtp(request.Email, request.Otp);
+                if (!isValid)
+                    return BadRequest(new { message = "OTP không hợp lệ hoặc đã hết hạn" });
+
+                return Ok(new { message = "OTP hợp lệ" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // POST: api/customer-auth/reset-password
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+        {
+            try
+            {
+                await _authService.ResetPassword(request.Email, request.Otp, request.NewPassword);
+                return Ok(new { message = "Đặt lại mật khẩu thành công" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"ResetPassword error: {ex.Message}");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

@@ -14,12 +14,16 @@ namespace TranHuuPhuoc_2123110236.Services
         private readonly AppDbContext _context;
         private readonly IConfiguration _configuration;
         private readonly ILogger<CustomerAuthService> _logger;
+        private readonly IEmailService _emailService;
+        private readonly IOtpStore _otpStore;
 
-        public CustomerAuthService(AppDbContext context, IConfiguration configuration, ILogger<CustomerAuthService> logger)
+        public CustomerAuthService(AppDbContext context, IConfiguration configuration, ILogger<CustomerAuthService> logger, IEmailService emailService, IOtpStore otpStore)
         {
             _context = context;
             _configuration = configuration;
             _logger = logger;
+            _emailService = emailService;
+            _otpStore = otpStore;
         }
 
         // Đăng kí khách hàng
@@ -266,6 +270,45 @@ namespace TranHuuPhuoc_2123110236.Services
         private string GenerateCustomerId()
         {
             return "CUST" + DateTime.Now.ToString("yyyyMMddHHmmss") + Guid.NewGuid().ToString().Substring(0, 4).ToUpper();
+        }
+        public async Task ForgotPassword(string email)
+        {
+            var customer = await _context.Customers
+                .FirstOrDefaultAsync(c => c.Email.ToLower() == email.ToLower());
+            if (customer == null)
+                throw new Exception("Email không tồn tại trong hệ thống");
+
+            var otp = new Random().Next(100000, 999999).ToString();
+            _otpStore.SaveOtp(email, otp);
+
+            await _emailService.SendOtpEmailAsync(email, customer.FullName, otp);
+            _logger.LogInformation($"OTP sent to {email}");
+        }
+
+        public bool VerifyOtp(string email, string otp)
+        {
+            return _otpStore.VerifyOtp(email, otp);
+        }
+
+        public async Task ResetPassword(string email, string otp, string newPassword)
+        {
+            if (!_otpStore.VerifyOtp(email, otp))
+                throw new Exception("OTP không hợp lệ hoặc đã hết hạn");
+
+            var customer = await _context.Customers
+                .FirstOrDefaultAsync(c => c.Email.ToLower() == email.ToLower());
+            if (customer == null)
+                throw new Exception("Email không tồn tại trong hệ thống");
+
+            if (newPassword.Length < 6)
+                throw new Exception("Mật khẩu mới phải có ít nhất 6 ký tự");
+
+            customer.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            customer.UpdatedAt = DateTime.Now;
+            await _context.SaveChangesAsync();
+
+            _otpStore.RemoveOtp(email);
+            _logger.LogInformation($"Password reset for {email}");
         }
     }
 }

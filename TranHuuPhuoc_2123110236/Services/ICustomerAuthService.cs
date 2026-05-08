@@ -11,5 +11,10 @@ namespace TranHuuPhuoc_2123110236.Services
         Task<CustomerDto> GetProfile(string customerId);
         Task<bool> UpdateProfile(string customerId, CustomerUpdateProfileRequest request);
         string GenerateJwtToken(Customer customer);
+
+        // ===== THÊM MỚI =====
+        Task ForgotPassword(string email);
+        bool VerifyOtp(string email, string otp);
+        Task ResetPassword(string email, string otp, string newPassword);
     }
 }

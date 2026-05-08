@@ -54,4 +54,27 @@
         public string PhoneNumber { get; set; }
         public string Address { get; set; }
     }
+
+    // ===== THÊM MỚI CHO QUÊN MẬT KHẨU =====
+
+    // Bước 1: Gửi OTP
+    public class ForgotPasswordRequest
+    {
+        public string Email { get; set; } = "";
+    }
+
+    // Bước 2: Xác nhận OTP
+    public class VerifyOtpRequest
+    {
+        public string Email { get; set; } = "";
+        public string Otp { get; set; } = "";
+    }
+
+    // Bước 3: Đặt lại mật khẩu
+    public class ResetPasswordRequest
+    {
+        public string Email { get; set; } = "";
+        public string Otp { get; set; } = "";
+        public string NewPassword { get; set; } = "";
+    }
 }

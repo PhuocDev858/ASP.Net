@@ -30,6 +30,8 @@ builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 builder.Services.AddScoped<IVNPayService, VNPayService>();
 builder.Services.AddScoped<IVietQRService, VietQRService>();
 builder.Services.AddScoped<IPaymentManagementService, PaymentManagementService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddSingleton<IOtpStore, OtpStore>();
 
 // JWT Authentication
 var jwtSecret = builder.Configuration["JwtSettings:Secret"]
